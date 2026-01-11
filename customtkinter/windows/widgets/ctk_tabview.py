@@ -393,7 +393,7 @@ class CTkTabview(CTkBaseClass):
 
         if name in self._tab_dict:
             self._name_list.remove(name)
-            self._tab_dict[name].grid_forget()
+            self._tab_dict[name].destroy()
             self._tab_dict.pop(name)
             self._segmented_button.delete(name)
 
