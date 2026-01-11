@@ -85,8 +85,14 @@ class CTkScrollbar(CTkBaseClass):
             self._canvas.bind("<Leave>", self._on_leave)
         if sequence is None or sequence == "<B1-Motion>":
             self._canvas.bind("<B1-Motion>", self._on_motion)
-        if sequence is None or sequence == "<MouseWheel>":
-            self._canvas.bind("<MouseWheel>", self._mouse_scroll_event)
+        if "linux" in sys.platform:
+            if sequence is None or sequence == "<Button-4>":
+                self._canvas.bind("<Button-4>", self._mouse_scroll_event)
+            if sequence is None or sequence == "<Button-5>":
+                self._canvas.bind("<Button-5>", self._mouse_scroll_event)
+        else:
+            if sequence is None or sequence == "<MouseWheel>":
+                self._canvas.bind("<MouseWheel>", self._mouse_scroll_event)
 
     def _set_scaling(self, *args, **kwargs):
         super()._set_scaling(*args, **kwargs)
@@ -258,11 +264,32 @@ class CTkScrollbar(CTkBaseClass):
     def _mouse_scroll_event(self, event=None):
         if self._command is not None:
             if sys.platform.startswith("win"):
-                self._command('scroll', -int(event.delta/40), 'units')
+                delta = -int(event.delta/40)
+            elif sys.platform == "darwin":
+                delta = -event.delta
             else:
                 # Linux uses event.num (Button-4 up, Button-5 down); event.delta is 0
                 delta = -1 if event.num == 4 else 1
-                self._command('scroll', delta, 'units')
+            self._command('scroll', delta, 'units')
+        else:
+            # No command attached — scroll internal state visually in 20 steps
+            delta = (1 - self._end_value + self._start_value) / 20
+            # Condition handles both Linux (event.num) and other OS (event.delta)
+            if event.delta < 0 or event.num == 5:
+                delta = -delta
+            if self._orientation == "vertical":
+                delta = -delta
+
+            if self._start_value + delta < 0.0:
+                self._end_value = self._end_value - self._start_value
+                self._start_value = 0.0
+            elif self._end_value + delta > 1.0:
+                self._start_value = 1 - self._end_value + self._start_value
+                self._end_value = 1.0
+            else:
+                self._start_value += delta
+                self._end_value += delta
+            self._draw()
 
     def set(self, start_value: float, end_value: float):
         self._start_value = float(start_value)
