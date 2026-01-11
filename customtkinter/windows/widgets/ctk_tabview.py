@@ -321,6 +321,7 @@ class CTkTabview(CTkBaseClass):
             return self._fg_color
         elif attribute_name == "border_color":
             return self._border_color
+
         elif attribute_name == "segmented_button_fg_color":
             return self._segmented_button.cget(attribute_name)
         elif attribute_name == "segmented_button_selected_color":
@@ -331,13 +332,13 @@ class CTkTabview(CTkBaseClass):
             return self._segmented_button.cget(attribute_name)
         elif attribute_name == "segmented_button_unselected_hover_color":
             return self._segmented_button.cget(attribute_name)
+        elif attribute_name == "segmented_button_font":
+            return self._segmented_button_font
+
         elif attribute_name == "text_color":
             return self._segmented_button.cget(attribute_name)
         elif attribute_name == "text_color_disabled":
             return self._segmented_button.cget(attribute_name)
-
-        elif attribute_name == "segmented_button_font":
-            return self._segmented_button_font
 
         elif attribute_name == "command":
             return self._command

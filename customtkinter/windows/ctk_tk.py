@@ -220,6 +220,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
     def cget(self, attribute_name: str) -> any:
         if attribute_name == "fg_color":
             return self._fg_color
+
         else:
             return super().cget(attribute_name)
 

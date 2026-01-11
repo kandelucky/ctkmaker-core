@@ -295,16 +295,16 @@ class CTkRadioButton(CTkBaseClass):
         super().configure(require_redraw=require_redraw, **kwargs)
 
     def cget(self, attribute_name: str) -> any:
-        if attribute_name == "corner_radius":
+        if attribute_name == "radiobutton_width":
+            return self._radiobutton_width
+        elif attribute_name == "radiobutton_height":
+            return self._radiobutton_height
+        elif attribute_name == "corner_radius":
             return self._corner_radius
         elif attribute_name == "border_width_unchecked":
             return self._border_width_unchecked
         elif attribute_name == "border_width_checked":
             return self._border_width_checked
-        elif attribute_name == "radiobutton_width":
-            return self._radiobutton_width
-        elif attribute_name == "radiobutton_height":
-            return self._radiobutton_height
 
         elif attribute_name == "fg_color":
             return self._fg_color

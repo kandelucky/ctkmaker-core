@@ -358,16 +358,16 @@ class CTkSwitch(CTkBaseClass):
         super().configure(require_redraw=require_redraw, **kwargs)
 
     def cget(self, attribute_name: str) -> any:
-        if attribute_name == "corner_radius":
+        if attribute_name == "switch_width":
+            return self._switch_width
+        elif attribute_name == "switch_height":
+            return self._switch_height
+        elif attribute_name == "corner_radius":
             return self._corner_radius
         elif attribute_name == "border_width":
             return self._border_width
         elif attribute_name == "button_length":
             return self._button_length
-        elif attribute_name == "switch_width":
-            return self._switch_width
-        elif attribute_name == "switch_height":
-            return self._switch_height
 
         elif attribute_name == "fg_color":
             return self._fg_color

@@ -235,23 +235,25 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         elif attribute_name == "height":
             return self._desired_height
 
-        elif attribute_name == "label_text":
-            return self._label_text
-        elif attribute_name == "label_font":
-            return self._label.cget("font")
-        elif attribute_name == "label_text_color":
-            return self._label.cget("_text_color")
-        elif attribute_name == "label_fg_color":
-            return self._label.cget("fg_color")
-        elif attribute_name == "label_anchor":
-            return self._label.cget("anchor")
-
         elif attribute_name.startswith("scrollbar_fg_color"):
             return self._scrollbar.cget("fg_color")
         elif attribute_name.startswith("scrollbar_button_color"):
             return self._scrollbar.cget("button_color")
         elif attribute_name.startswith("scrollbar_button_hover_color"):
             return self._scrollbar.cget("button_hover_color")
+        elif attribute_name == "label_fg_color":
+            return self._label.cget("fg_color")
+        elif attribute_name == "label_text_color":
+            return self._label.cget("_text_color")
+
+        elif attribute_name == "label_text":
+            return self._label_text
+        elif attribute_name == "label_font":
+            return self._label.cget("font")
+        elif attribute_name == "label_anchor":
+            return self._label.cget("anchor")
+        elif attribute_name == "orientation":
+            return self._orientation
 
         else:
             return self._parent_frame.cget(attribute_name)

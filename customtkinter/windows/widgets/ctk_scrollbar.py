@@ -200,9 +200,9 @@ class CTkScrollbar(CTkBaseClass):
 
         elif attribute_name == "fg_color":
             return self._fg_color
-        elif attribute_name == "scrollbar_color":
+        elif attribute_name == "button_color":
             return self._button_color
-        elif attribute_name == "scrollbar_hover_color":
+        elif attribute_name == "button_hover_color":
             return self._button_hover_color
 
         elif attribute_name == "hover":

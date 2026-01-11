@@ -322,10 +322,18 @@ class CTkTextbox(CTkBaseClass):
             return self._border_color
         elif attribute_name == "text_color":
             return self._text_color
+        elif attribute_name == "scrollbar_button_color":
+            return self._scrollbar_button_color
+        elif attribute_name == "scrollbar_button_hover_color":
+            return self._scrollbar_button_hover_color
 
         elif attribute_name == "font":
             return self._font
+        elif attribute_name == "activate_scrollbars":
+            return self._scrollbars_activated
 
+        elif attribute_name in self._valid_tk_text_attributes:
+            return self._textbox.cget(attribute_name)  # cget of tkinter.Text
         else:
             return super().cget(attribute_name)
 

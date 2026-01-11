@@ -357,6 +357,7 @@ class CTkComboBox(CTkBaseClass):
             return self._command
         elif attribute_name == "justify":
             return self._entry.cget("justify")
+
         else:
             return super().cget(attribute_name)
 

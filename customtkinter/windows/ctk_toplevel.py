@@ -196,6 +196,7 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
     def cget(self, attribute_name: str) -> any:
         if attribute_name == "fg_color":
             return self._fg_color
+
         else:
             return super().cget(attribute_name)
 

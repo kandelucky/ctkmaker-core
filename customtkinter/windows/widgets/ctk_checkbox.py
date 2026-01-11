@@ -316,14 +316,14 @@ class CTkCheckBox(CTkBaseClass):
         super().configure(require_redraw=require_redraw, **kwargs)
 
     def cget(self, attribute_name: str) -> any:
-        if attribute_name == "corner_radius":
-            return self._corner_radius
-        elif attribute_name == "border_width":
-            return self._border_width
-        elif attribute_name == "checkbox_width":
+        if attribute_name == "checkbox_width":
             return self._checkbox_width
         elif attribute_name == "checkbox_height":
             return self._checkbox_height
+        elif attribute_name == "corner_radius":
+            return self._corner_radius
+        elif attribute_name == "border_width":
+            return self._border_width
 
         elif attribute_name == "fg_color":
             return self._fg_color
@@ -348,12 +348,15 @@ class CTkCheckBox(CTkBaseClass):
             return self._state
         elif attribute_name == "hover":
             return self._hover
+        elif attribute_name == "command":
+            return self._command
         elif attribute_name == "onvalue":
             return self._onvalue
         elif attribute_name == "offvalue":
             return self._offvalue
         elif attribute_name == "variable":
             return self._variable
+
         else:
             return super().cget(attribute_name)
 

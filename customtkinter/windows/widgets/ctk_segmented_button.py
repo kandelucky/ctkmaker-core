@@ -335,17 +335,11 @@ class CTkSegmentedButton(CTkFrame):
         check_kwargs_empty(kwargs, raise_error=True)
 
     def cget(self, attribute_name: str) -> any:
-        if attribute_name == "width":
-            return super().cget(attribute_name)
-        elif attribute_name == "height":
-            return super().cget(attribute_name)
-        elif attribute_name == "corner_radius":
+        if attribute_name == "corner_radius":
             return self._sb_corner_radius
         elif attribute_name == "border_width":
             return self._sb_border_width
 
-        elif attribute_name == "bg_color":
-            return super().cget(attribute_name)
         elif attribute_name == "fg_color":
             return self._sb_fg_color
         elif attribute_name == "selected_color":
@@ -360,6 +354,8 @@ class CTkSegmentedButton(CTkFrame):
             return self._sb_text_color
         elif attribute_name == "text_color_disabled":
             return self._sb_text_color_disabled
+        elif attribute_name == "background_corner_colors":
+            return self._background_corner_colors
 
         elif attribute_name == "font":
             return self._font
@@ -371,11 +367,13 @@ class CTkSegmentedButton(CTkFrame):
             return self._dynamic_resizing
         elif attribute_name == "command":
             return self._command
+        elif attribute_name == "state":
+            return self._state
         elif attribute_name == "orientation":
             return self._orientation
 
         else:
-            raise ValueError(f"'{attribute_name}' is not a supported argument. Look at the documentation for supported arguments.")
+            return super().cget(attribute_name)
 
     def set(self, value: str, from_variable_callback: bool = False, from_button_callback: bool = False):
         if value == self._current_value:

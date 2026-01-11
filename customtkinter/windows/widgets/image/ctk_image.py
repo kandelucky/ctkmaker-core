@@ -71,9 +71,9 @@ class CTkImage:
     def cget(self, attribute_name: str) -> any:
         if attribute_name == "light_image":
             return self._light_image
-        if attribute_name == "dark_image":
+        elif attribute_name == "dark_image":
             return self._dark_image
-        if attribute_name == "size":
+        elif attribute_name == "size":
             return self._size
 
     def _check_images(self):

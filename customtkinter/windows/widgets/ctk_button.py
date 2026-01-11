@@ -485,6 +485,7 @@ class CTkButton(CTkBaseClass):
             return self._compound
         elif attribute_name == "anchor":
             return self._anchor
+
         else:
             return super().cget(attribute_name)
 
