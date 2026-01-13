@@ -249,6 +249,9 @@ class CTkSlider(CTkBaseClass):
         if "number_of_steps" in kwargs:
             self._number_of_steps = kwargs.pop("number_of_steps")
 
+        if "scroll_step" in kwargs:
+            self._scroll_step = kwargs.pop("scroll_step")
+
         if "hover" in kwargs:
             self._hover = kwargs.pop("hover")
 
@@ -258,14 +261,10 @@ class CTkSlider(CTkBaseClass):
         if "variable" in kwargs:
             if self._variable is not None:
                 self._variable.trace_remove("write", self._variable_callback_name)
-
             self._variable = kwargs.pop("variable")
-
             if self._variable is not None and self._variable != "":
                 self._variable_callback_name = self._variable.trace_add("write", self._variable_callback)
                 self.set(self._variable.get(), from_variable_callback=True)
-            else:
-                self._variable = None
 
         if "orientation" in kwargs:
             self._orientation = kwargs.pop("orientation")
@@ -302,6 +301,8 @@ class CTkSlider(CTkBaseClass):
             return self._state
         elif attribute_name == "number_of_steps":
             return self._number_of_steps
+        elif attribute_name == "scroll_step":
+            return self._scroll_step
         elif attribute_name == "hover":
             return self._hover
         elif attribute_name == "command":

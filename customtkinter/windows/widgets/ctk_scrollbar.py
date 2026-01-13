@@ -162,6 +162,14 @@ class CTkScrollbar(CTkBaseClass):
         self._canvas.update_idletasks()
 
     def configure(self, require_redraw=False, **kwargs):
+        if "corner_radius" in kwargs:
+            self._corner_radius = kwargs.pop("corner_radius")
+            require_redraw = True
+
+        if "border_spacing" in kwargs:
+            self._border_spacing = kwargs.pop("border_spacing")
+            require_redraw = True
+
         if "fg_color" in kwargs:
             self._fg_color = self._check_color_type(kwargs.pop("fg_color"), transparency=True)
             require_redraw = True
@@ -179,14 +187,6 @@ class CTkScrollbar(CTkBaseClass):
 
         if "command" in kwargs:
             self._command = kwargs.pop("command")
-
-        if "corner_radius" in kwargs:
-            self._corner_radius = kwargs.pop("corner_radius")
-            require_redraw = True
-
-        if "border_spacing" in kwargs:
-            self._border_spacing = kwargs.pop("border_spacing")
-            require_redraw = True
 
         super().configure(require_redraw=require_redraw, **kwargs)
 

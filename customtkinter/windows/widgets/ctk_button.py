@@ -405,7 +405,6 @@ class CTkButton(CTkBaseClass):
             self._font = self._check_font_type(kwargs.pop("font"))
             if isinstance(self._font, CTkFont):
                 self._font.add_size_configure_callback(self._update_font)
-
             self._update_font()
 
         if "textvariable" in kwargs:
@@ -419,7 +418,10 @@ class CTkButton(CTkBaseClass):
             self._image = self._check_image_type(kwargs.pop("image"))
             if isinstance(self._image, CTkImage):
                 self._image.add_configure_callback(self._update_image)
-            self._update_image()
+            if self._image_label is not None:
+                self._update_image()
+            else:
+                require_redraw = True
 
         if "state" in kwargs:
             self._state = kwargs.pop("state")

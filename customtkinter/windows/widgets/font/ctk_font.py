@@ -65,13 +65,13 @@ class CTkFont(Font):
         raise AttributeError("'config' is not implemented for CTk widgets. For consistency, always use 'configure' instead.")
 
     def configure(self, **kwargs):
-        if "size" in kwargs:
-            self._size = kwargs.pop("size")
-            super().configure(size=-abs(self._size))
-
         if "family" in kwargs:
             super().configure(family=kwargs.pop("family"))
             self._family = super().cget("family")
+
+        if "size" in kwargs:
+            self._size = kwargs.pop("size")
+            super().configure(size=-abs(self._size))
 
         super().configure(**kwargs)
 

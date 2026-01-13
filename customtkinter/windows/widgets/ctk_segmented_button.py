@@ -240,7 +240,6 @@ class CTkSegmentedButton(CTkFrame):
 
         if "bg_color" in kwargs:
             super().configure(bg_color=kwargs.pop("bg_color"))
-
             if len(self._buttons_dict) > 0:
                 self._configure_button_corners_for_index(0)
             if len(self._buttons_dict) > 1:
@@ -313,14 +312,10 @@ class CTkSegmentedButton(CTkFrame):
         if "variable" in kwargs:
             if self._variable is not None:  # remove old callback
                 self._variable.trace_remove("write", self._variable_callback_name)
-
             self._variable = kwargs.pop("variable")
-
             if self._variable is not None and self._variable != "":
                 self._variable_callback_name = self._variable.trace_add("write", self._variable_callback)
                 self.set(self._variable.get(), from_variable_callback=True)
-            else:
-                self._variable = None
 
         if "dynamic_resizing" in kwargs:
             self._dynamic_resizing = kwargs.pop("dynamic_resizing")

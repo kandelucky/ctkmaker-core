@@ -55,10 +55,12 @@ class CTkImage:
             self._light_image = kwargs.pop("light_image")
             self._scaled_light_photo_images = {}
             self._check_images()
+
         if "dark_image" in kwargs:
             self._dark_image = kwargs.pop("dark_image")
             self._scaled_dark_photo_images = {}
             self._check_images()
+
         if "size" in kwargs:
             self._size = kwargs.pop("size")
 

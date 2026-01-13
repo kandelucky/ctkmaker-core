@@ -206,6 +206,18 @@ class CTkRadioButton(CTkBaseClass):
             self._text_label.configure(bg=self._apply_appearance_mode(self._bg_color))
 
     def configure(self, require_redraw=False, **kwargs):
+        require_new_state = False
+
+        if "radiobutton_width" in kwargs:
+            self._radiobutton_width = kwargs.pop("radiobutton_width")
+            self._canvas.configure(width=self._apply_widget_scaling(self._radiobutton_width))
+            require_redraw = True
+
+        if "radiobutton_height" in kwargs:
+            self._radiobutton_height = kwargs.pop("radiobutton_height")
+            self._canvas.configure(height=self._apply_widget_scaling(self._radiobutton_height))
+            require_redraw = True
+
         if "corner_radius" in kwargs:
             self._corner_radius = kwargs.pop("corner_radius")
             require_redraw = True
@@ -218,14 +230,24 @@ class CTkRadioButton(CTkBaseClass):
             self._border_width_checked = kwargs.pop("border_width_checked")
             require_redraw = True
 
-        if "radiobutton_width" in kwargs:
-            self._radiobutton_width = kwargs.pop("radiobutton_width")
-            self._canvas.configure(width=self._apply_widget_scaling(self._radiobutton_width))
+        if "fg_color" in kwargs:
+            self._fg_color = self._check_color_type(kwargs.pop("fg_color"))
             require_redraw = True
 
-        if "radiobutton_height" in kwargs:
-            self._radiobutton_height = kwargs.pop("radiobutton_height")
-            self._canvas.configure(height=self._apply_widget_scaling(self._radiobutton_height))
+        if "hover_color" in kwargs:
+            self._hover_color = self._check_color_type(kwargs.pop("hover_color"))
+            require_redraw = True
+
+        if "border_color" in kwargs:
+            self._border_color = self._check_color_type(kwargs.pop("border_color"))
+            require_redraw = True
+
+        if "text_color" in kwargs:
+            self._text_color = self._check_color_type(kwargs.pop("text_color"))
+            require_redraw = True
+
+        if "text_color_disabled" in kwargs:
+            self._text_color_disabled = self._check_color_type(kwargs.pop("text_color_disabled"))
             require_redraw = True
 
         if "text" in kwargs:
@@ -238,39 +260,7 @@ class CTkRadioButton(CTkBaseClass):
             self._font = self._check_font_type(kwargs.pop("font"))
             if isinstance(self._font, CTkFont):
                 self._font.add_size_configure_callback(self._update_font)
-
             self._update_font()
-
-        if "state" in kwargs:
-            self._state = kwargs.pop("state")
-            self._set_cursor()
-            require_redraw = True
-
-        if "fg_color" in kwargs:
-            self._fg_color = self._check_color_type(kwargs.pop("fg_color"))
-            require_redraw = True
-
-        if "hover_color" in kwargs:
-            self._hover_color = self._check_color_type(kwargs.pop("hover_color"))
-            require_redraw = True
-
-        if "text_color" in kwargs:
-            self._text_color = self._check_color_type(kwargs.pop("text_color"))
-            require_redraw = True
-
-        if "text_color_disabled" in kwargs:
-            self._text_color_disabled = self._check_color_type(kwargs.pop("text_color_disabled"))
-            require_redraw = True
-
-        if "border_color" in kwargs:
-            self._border_color = self._check_color_type(kwargs.pop("border_color"))
-            require_redraw = True
-
-        if "hover" in kwargs:
-            self._hover = kwargs.pop("hover")
-
-        if "command" in kwargs:
-            self._command = kwargs.pop("command")
 
         if "textvariable" in kwargs:
             self._textvariable = kwargs.pop("textvariable")
@@ -279,14 +269,29 @@ class CTkRadioButton(CTkBaseClass):
         if "variable" in kwargs:
             if self._variable is not None:
                 self._variable.trace_remove("write", self._variable_callback_name)
-
             self._variable = kwargs.pop("variable")
-
             if self._variable is not None and self._variable != "":
                 self._variable_callback_name = self._variable.trace_add("write", self._variable_callback)
-                self._check_state = True if self._variable.get() == self._value else False
-                require_redraw = True
+                require_new_state = True
 
+        if "value" in kwargs:
+            self._value = kwargs.pop("value")
+            require_new_state = True
+
+        if "state" in kwargs:
+            self._state = kwargs.pop("state")
+            self._set_cursor()
+            require_redraw = True
+
+        if "hover" in kwargs:
+            self._hover = kwargs.pop("hover")
+
+        if "command" in kwargs:
+            self._command = kwargs.pop("command")
+
+        if require_new_state and self._variable is not None and self._variable != "":
+            self._check_state = True if self._variable.get() == self._value else False
+            require_redraw = True
         super().configure(require_redraw=require_redraw, **kwargs)
 
     def cget(self, attribute_name: str) -> any:

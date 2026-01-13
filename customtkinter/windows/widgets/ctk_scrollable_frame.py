@@ -210,6 +210,12 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         if "scrollbar_button_hover_color" in kwargs:
             self._scrollbar.configure(button_hover_color=kwargs.pop("scrollbar_button_hover_color"))
 
+        if "label_fg_color" in kwargs:
+            self._label.configure(fg_color=kwargs.pop("label_fg_color"))
+
+        if "label_text_color" in kwargs:
+            self._label.configure(text_color=kwargs.pop("label_text_color"))
+
         if "label_text" in kwargs:
             self._label_text = kwargs.pop("label_text")
             self._label.configure(text=self._label_text)
@@ -217,12 +223,6 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
 
         if "label_font" in kwargs:
             self._label.configure(font=kwargs.pop("label_font"))
-
-        if "label_text_color" in kwargs:
-            self._label.configure(text_color=kwargs.pop("label_text_color"))
-
-        if "label_fg_color" in kwargs:
-            self._label.configure(fg_color=kwargs.pop("label_fg_color"))
 
         if "label_anchor" in kwargs:
             self._label.configure(anchor=kwargs.pop("label_anchor"))

@@ -274,7 +274,6 @@ class CTkComboBox(CTkBaseClass):
             self._font = self._check_font_type(kwargs.pop("font"))
             if isinstance(self._font, CTkFont):
                 self._font.add_size_configure_callback(self._update_font)
-
             self._update_font()
 
         if "dropdown_font" in kwargs:

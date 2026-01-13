@@ -262,7 +262,6 @@ class CTkOptionMenu(CTkBaseClass):
             self._font = self._check_font_type(kwargs.pop("font"))
             if isinstance(self._font, CTkFont):
                 self._font.add_size_configure_callback(self._update_font)
-
             self._update_font()
 
         if "dropdown_font" in kwargs:
@@ -275,15 +274,11 @@ class CTkOptionMenu(CTkBaseClass):
         if "variable" in kwargs:
             if self._variable is not None:  # remove old callback
                 self._variable.trace_remove("write", self._variable_callback_name)
-
             self._variable = kwargs.pop("variable")
-
             if self._variable is not None and self._variable != "":
                 self._variable_callback_name = self._variable.trace_add("write", self._variable_callback)
                 self._current_value = self._variable.get()
                 self._text_label.configure(text=self._current_value)
-            else:
-                self._variable = None
 
         if "state" in kwargs:
             self._state = kwargs.pop("state")

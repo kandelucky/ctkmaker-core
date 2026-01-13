@@ -135,6 +135,10 @@ class DropdownMenu(tkinter.Menu, CTkAppearanceModeBaseClass, CTkScalingBaseClass
             self.tk_popup(int(x), int(y))
 
     def configure(self, **kwargs):
+        if "min_character_width" in kwargs:
+            self._min_character_width = kwargs.pop("min_character_width")
+            self._add_menu_commands()
+
         if "fg_color" in kwargs:
             self._fg_color = self._check_color_type(kwargs.pop("fg_color"))
             super().configure(bg=self._apply_appearance_mode(self._fg_color))
@@ -153,7 +157,6 @@ class DropdownMenu(tkinter.Menu, CTkAppearanceModeBaseClass, CTkScalingBaseClass
             self._font = self._check_font_type(kwargs.pop("font"))
             if isinstance(self._font, CTkFont):
                 self._font.add_size_configure_callback(self._update_font)
-
             self._update_font()
 
         if "command" in kwargs:
