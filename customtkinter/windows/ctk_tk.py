@@ -79,7 +79,9 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
 
         self.bind('<Configure>', self._update_dimensions_event)
         self.bind('<FocusIn>', self._focus_in_event)
-        #allows CTkEntry and CTkTextbox to lose focus
+        # Allows CTkEntry and CTkTextbox to lose focus when clicking elsewhere.
+        # Guarded so click on a widget without focus_set (e.g. a native Menu)
+        # does not raise AttributeError (per Federico's 8c85d9b follow-up).
         def set_focus(event: tkinter.Event):
             if hasattr(event.widget, "focus_set"):
                 event.widget.focus_set()

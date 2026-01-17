@@ -81,15 +81,15 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         self._parent_canvas.bind("<Configure>", self._fit_frame_dimensions_to_canvas)
 
         if "linux" in sys.platform:
-            self.bind_all("<Button-4>", self._mouse_wheel_all, add="+")
-            self.bind_all("<Button-5>", self._mouse_wheel_all, add="+")
+            self.bind_all("<Button-4>", self._mouse_wheel_all, add=True)
+            self.bind_all("<Button-5>", self._mouse_wheel_all, add=True)
         else:
-            self.bind_all("<MouseWheel>", self._mouse_wheel_all, add="+")
+            self.bind_all("<MouseWheel>", self._mouse_wheel_all, add=True)
 
-        self.bind_all("<KeyPress-Shift_L>", self._keyboard_shift_press_all, add="+")
-        self.bind_all("<KeyPress-Shift_R>", self._keyboard_shift_press_all, add="+")
-        self.bind_all("<KeyRelease-Shift_L>", self._keyboard_shift_release_all, add="+")
-        self.bind_all("<KeyRelease-Shift_R>", self._keyboard_shift_release_all, add="+")
+        self.bind_all("<KeyPress-Shift_L>", self._keyboard_shift_press_all, add=True)
+        self.bind_all("<KeyPress-Shift_R>", self._keyboard_shift_press_all, add=True)
+        self.bind_all("<KeyRelease-Shift_L>", self._keyboard_shift_release_all, add=True)
+        self.bind_all("<KeyRelease-Shift_R>", self._keyboard_shift_release_all, add=True)
         self._create_window_id = self._parent_canvas.create_window(0, 0, window=self, anchor="nw")
 
         if self._parent_frame.cget("fg_color") == "transparent":

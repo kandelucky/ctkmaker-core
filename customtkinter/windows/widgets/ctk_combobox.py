@@ -88,6 +88,7 @@ class CTkComboBox(CTkBaseClass):
                                            text_color=dropdown_text_color,
                                            font=dropdown_font,
                                            justify=justify)
+        self._close_on_next_click: bool = False
 
         # configure grid system (1x1)
         self.grid_rowconfigure(0, weight=1)
@@ -224,6 +225,7 @@ class CTkComboBox(CTkBaseClass):
     def _open_dropdown_menu(self):
         self._dropdown_menu.open(self.winfo_rootx(),
                                  self.winfo_rooty() + self._apply_widget_scaling(self._current_height + 0))
+        # Set AFTER open() to avoid misfire if open() ever raises (per 8c85d9b).
         self._close_on_next_click = True
 
     def configure(self, require_redraw=False, **kwargs):
@@ -363,6 +365,7 @@ class CTkComboBox(CTkBaseClass):
             return super().cget(attribute_name)
 
     def _on_enter(self, event=0):
+        self._close_on_next_click = self._dropdown_menu.is_open()
         if self._hover is True and self._state == tkinter.NORMAL and len(self._values) > 0:
             if sys.platform == "darwin" and len(self._values) > 0 and self._cursor_manipulation_enabled:
                 self._canvas.configure(cursor="pointinghand")
@@ -426,7 +429,10 @@ class CTkComboBox(CTkBaseClass):
             return self._values.index(value)
 
     def _clicked(self, event=None):
-        if self._state is not tkinter.DISABLED and len(self._values) > 0:
+        if self._close_on_next_click:
+            self._dropdown_menu.close()
+            self._close_on_next_click = False
+        elif self._state is not tkinter.DISABLED and len(self._values) > 0:
             self._open_dropdown_menu()
 
     def bind(self, sequence=None, command=None, add=True):

@@ -135,6 +135,12 @@ class DropdownMenu(tkinter.Menu, CTkAppearanceModeBaseClass, CTkScalingBaseClass
         else:  # Linux
             self.tk_popup(int(x), int(y))
 
+    def close(self):
+        self.unpost()
+
+    def is_open(self) -> bool:
+        return bool(self.winfo_viewable())
+
     def configure(self, **kwargs):
         if "min_character_width" in kwargs:
             self._min_character_width = kwargs.pop("min_character_width")
