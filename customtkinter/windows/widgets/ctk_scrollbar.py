@@ -260,7 +260,9 @@ class CTkScrollbar(CTkBaseClass):
             if sys.platform.startswith("win"):
                 self._command('scroll', -int(event.delta/40), 'units')
             else:
-                self._command('scroll', -event.delta, 'units')
+                # Linux uses event.num (Button-4 up, Button-5 down); event.delta is 0
+                delta = -1 if event.num == 4 else 1
+                self._command('scroll', delta, 'units')
 
     def set(self, start_value: float, end_value: float):
         self._start_value = float(start_value)
