@@ -119,7 +119,7 @@ class CTkTextbox(CTkBaseClass):
 
         self._create_grid_for_text_and_scrollbars(re_grid_textbox=True, re_grid_x_scrollbar=True, re_grid_y_scrollbar=True)
 
-        self.after(50, self._check_if_scrollbars_needed, None, True)
+        self._scrollbar_after_id = self.after(50, self._check_if_scrollbars_needed, None, True)
         self._draw()
 
     def _create_grid_for_text_and_scrollbars(self, re_grid_textbox=False, re_grid_x_scrollbar=False, re_grid_y_scrollbar=False):
@@ -174,7 +174,7 @@ class CTkTextbox(CTkBaseClass):
             self._create_grid_for_text_and_scrollbars(re_grid_y_scrollbar=True)
 
         if self._textbox.winfo_exists() and continue_loop is True:
-            self.after(self._scrollbar_update_time, lambda: self._check_if_scrollbars_needed(continue_loop=True))
+            self._scrollbar_after_id = self.after(self._scrollbar_update_time, lambda: self._check_if_scrollbars_needed(continue_loop=True))
 
     def _set_scaling(self, *args, **kwargs):
         super()._set_scaling(*args, **kwargs)
@@ -202,6 +202,10 @@ class CTkTextbox(CTkBaseClass):
         self._canvas.grid(row=0, column=0, rowspan=2, columnspan=2, sticky="nsew")
 
     def destroy(self):
+        if self._scrollbar_after_id is not None:
+            self.after_cancel(self._scrollbar_after_id)
+            self._scrollbar_after_id = None
+
         if isinstance(self._font, CTkFont):
             self._font.remove_size_configure_callback(self._update_font)
 

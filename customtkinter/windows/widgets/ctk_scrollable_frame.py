@@ -98,6 +98,17 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         self._shift_pressed = False
 
     def destroy(self):
+        # unbind global event bindings to prevent "invalid command name" errors
+        if "linux" in sys.platform:
+            self.unbind_all("<Button-4>")
+            self.unbind_all("<Button-5>")
+        else:
+            self.unbind_all("<MouseWheel>")
+        self.unbind_all("<KeyPress-Shift_L>")
+        self.unbind_all("<KeyPress-Shift_R>")
+        self.unbind_all("<KeyRelease-Shift_L>")
+        self.unbind_all("<KeyRelease-Shift_R>")
+
         tkinter.Frame.destroy(self)
         self._parent_frame.destroy()
         CTkAppearanceModeBaseClass.destroy(self)

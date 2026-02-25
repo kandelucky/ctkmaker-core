@@ -109,6 +109,11 @@ class CTkProgressBar(CTkBaseClass):
         self._draw()
 
     def destroy(self):
+        if self._loop_after_id is not None:
+            self.after_cancel(self._loop_after_id)
+            self._loop_after_id = None
+        self._loop_running = False
+
         if self._variable is not None:
             self._variable.trace_remove("write", self._variable_callback_name)
 
