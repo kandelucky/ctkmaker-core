@@ -117,6 +117,18 @@ class DropdownMenu(tkinter.Menu, CTkAppearanceModeBaseClass, CTkScalingBaseClass
         else:
             y += self._apply_widget_scaling(3)
 
+        # flip dropdown above the widget if it would extend past the screen bottom
+        try:
+            screen_height = self.winfo_screenheight()
+            item_count = len(self._values) if self._values else 0
+            estimated_item_height = self._apply_widget_scaling(28)
+            estimated_height = item_count * estimated_item_height + self._apply_widget_scaling(8)
+
+            if y + estimated_height > screen_height and y > estimated_height:
+                y = y - estimated_height - self._apply_widget_scaling(6)
+        except Exception:
+            pass
+
         if sys.platform == "darwin" or sys.platform.startswith("win"):
             self.post(int(x), int(y))
         else:  # Linux
