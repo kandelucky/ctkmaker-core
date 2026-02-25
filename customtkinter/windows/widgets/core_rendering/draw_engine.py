@@ -703,7 +703,7 @@ class DrawEngine:
         if self._round_height_to_even_numbers:
             height = math.floor(height / 2) * 2
 
-        if corner_radius > width / 2 or corner_radius > height / 2:  # restrict corner_radius if it's too larger
+        if corner_radius > width / 2 or corner_radius > height / 2:  # restrict corner_radius if it's too large
             corner_radius = min(width / 2, height / 2)
 
         border_width = round(border_width)
@@ -713,6 +713,11 @@ class DrawEngine:
             inner_corner_radius = corner_radius - border_width
         else:
             inner_corner_radius = 0
+
+        # clamp inner_corner_radius so progress fill doesn't collapse at small dimensions
+        max_inner_radius = max(0, min((width - 2 * border_width) / 2, (height - 2 * border_width) / 2))
+        if inner_corner_radius > max_inner_radius:
+            inner_corner_radius = max_inner_radius
 
         if self.preferred_drawing_method == "polygon_shapes" or self.preferred_drawing_method == "circle_shapes":
             return self.__draw_rounded_progress_bar_with_border_polygon_shapes(width, height, corner_radius, border_width, inner_corner_radius,
@@ -777,23 +782,27 @@ class DrawEngine:
                 self._canvas.create_aa_circle(0, 0, 0, tags=("progress_oval_2_b", "progress_corner_part", "progress_parts"), anchor=tkinter.CENTER, angle=180)
                 requires_recoloring = True
 
-            if not self._canvas.find_withtag("progress_oval_3_a") and round(inner_corner_radius) * 2 < height - 2 * border_width:
+            needs_extra_corners = (round(inner_corner_radius) * 2 < height - 2 * border_width and
+                                    round(inner_corner_radius) * 2 < width - 2 * border_width)
+            if not self._canvas.find_withtag("progress_oval_3_a") and needs_extra_corners:
                 self._canvas.create_aa_circle(0, 0, 0, tags=("progress_oval_3_a", "progress_corner_part", "progress_parts"), anchor=tkinter.CENTER)
                 self._canvas.create_aa_circle(0, 0, 0, tags=("progress_oval_3_b", "progress_corner_part", "progress_parts"), anchor=tkinter.CENTER, angle=180)
                 self._canvas.create_aa_circle(0, 0, 0, tags=("progress_oval_4_a", "progress_corner_part", "progress_parts"), anchor=tkinter.CENTER)
                 self._canvas.create_aa_circle(0, 0, 0, tags=("progress_oval_4_b", "progress_corner_part", "progress_parts"), anchor=tkinter.CENTER, angle=180)
                 requires_recoloring = True
-            elif self._canvas.find_withtag("progress_oval_3_a") and not round(inner_corner_radius) * 2 < height - 2 * border_width:
+            elif self._canvas.find_withtag("progress_oval_3_a") and not needs_extra_corners:
                 self._canvas.delete("progress_oval_3_a", "progress_oval_3_b", "progress_oval_4_a", "progress_oval_4_b")
 
         if not self._canvas.find_withtag("progress_rectangle_1"):
             self._canvas.create_rectangle(0, 0, 0, 0, tags=("progress_rectangle_1", "progress_rectangle_part", "progress_parts"), width=0)
             requires_recoloring = True
 
-        if not self._canvas.find_withtag("progress_rectangle_2") and inner_corner_radius * 2 < height - (border_width * 2):
+        needs_extra_rect = (inner_corner_radius * 2 < height - (border_width * 2) and
+                            inner_corner_radius * 2 < width - (border_width * 2))
+        if not self._canvas.find_withtag("progress_rectangle_2") and needs_extra_rect:
             self._canvas.create_rectangle(0, 0, 0, 0, tags=("progress_rectangle_2", "progress_rectangle_part", "progress_parts"), width=0)
             requires_recoloring = True
-        elif self._canvas.find_withtag("progress_rectangle_2") and not inner_corner_radius * 2 < height - (border_width * 2):
+        elif self._canvas.find_withtag("progress_rectangle_2") and not needs_extra_rect:
             self._canvas.delete("progress_rectangle_2")
 
         # horizontal orientation from the bottom
