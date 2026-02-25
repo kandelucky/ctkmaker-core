@@ -324,6 +324,51 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
                 self.after(1, self.focused_widget_before_widthdraw.focus)
                 self.focused_widget_before_widthdraw = None
 
+    def save_geometry(self) -> str:
+        """Save current geometry as a DPI-independent string.
+        Returns a string like '900x600+100+200' in logical (unscaled) coordinates.
+        Use restore_geometry() to restore it safely."""
+        return self.geometry()
+
+    def restore_geometry(self, geometry_string: str):
+        """Restore geometry with screen bounds clamping.
+        Ensures the window is fully visible on the current screen setup,
+        even if the DPI or monitor configuration has changed since saving."""
+        if not geometry_string:
+            return
+
+        width, height, x, y = self._parse_geometry_string(geometry_string)
+
+        if width is None or height is None:
+            # just position, no size — apply directly
+            self.geometry(geometry_string)
+            return
+
+        # get current screen dimensions (in logical coordinates)
+        try:
+            screen_w = self._reverse_window_scaling(self.winfo_screenwidth())
+            screen_h = self._reverse_window_scaling(self.winfo_screenheight())
+        except Exception:
+            self.geometry(geometry_string)
+            return
+
+        # clamp size to screen
+        width = max(self._min_width, min(width, screen_w))
+        height = max(self._min_height, min(height, screen_h))
+
+        # clamp position: ensure at least 100px of the window is visible
+        min_visible = 100
+        if x is not None and y is not None:
+            # ensure window is not completely off-screen
+            x = max(-(width - min_visible), min(x, screen_w - min_visible))
+            y = max(0, min(y, screen_h - min_visible))
+        else:
+            # center on screen if no position was saved
+            x = max(0, (screen_w - width) // 2)
+            y = max(0, (screen_h - height) // 2)
+
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
     def _set_appearance_mode(self, mode_string: str):
         super()._set_appearance_mode(mode_string)
 
