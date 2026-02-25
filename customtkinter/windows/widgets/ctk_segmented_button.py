@@ -201,7 +201,13 @@ class CTkSegmentedButton(CTkFrame):
 
             for index, value in enumerate(self._value_list):
                 self.grid_rowconfigure(index, weight=1, minsize=self._current_height)
-                self._buttons_dict[value].grid(row=index, column=0, sticky="nsew")
+                # overlap adjacent buttons by 1px to hide subpixel gaps at high DPI
+                if 0 < index < len(self._value_list) - 1:
+                    self._buttons_dict[value].grid(row=index, column=0, sticky="nsew", pady=(-1, 0))
+                elif index > 0:
+                    self._buttons_dict[value].grid(row=index, column=0, sticky="nsew", pady=(-1, 0))
+                else:
+                    self._buttons_dict[value].grid(row=index, column=0, sticky="nsew")
         else:
             # remove minsize from every grid cell in the first row
             for n in range(number_of_columns):
@@ -210,7 +216,11 @@ class CTkSegmentedButton(CTkFrame):
 
             for index, value in enumerate(self._value_list):
                 self.grid_columnconfigure(index, weight=1, minsize=self._current_height)
-                self._buttons_dict[value].grid(row=0, column=index, sticky="nsew")
+                # overlap adjacent buttons by 1px to hide subpixel gaps at high DPI
+                if index > 0:
+                    self._buttons_dict[value].grid(row=0, column=index, sticky="nsew", padx=(-1, 0))
+                else:
+                    self._buttons_dict[value].grid(row=0, column=index, sticky="nsew")
 
     def _create_buttons_from_values(self):
         assert len(self._buttons_dict) == 0
