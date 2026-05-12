@@ -86,6 +86,12 @@ _(None)_
   jump to the click position. `port(verbatim)` from
   [`907300e`](https://github.com/FedericoSpada/Custom2kinter/commit/907300e)
   by timgdx, originally upstream PR#2158.
+- **[Fixed]** `CTkScrollableFrame` mouse wheel scrolling now works on
+  Linux (binds `<Button-4>`/`<Button-5>` + uses `event.num` for delta +
+  `xscrollincrement=30/yscrollincrement=30`). Windows/macOS unchanged.
+  `port(verbatim)` from
+  [`344b30e`](https://github.com/TomSchimansky/CustomTkinter/commit/344b30e)
+  by Tom Schimansky (upstream unmerged). Closes upstream issue #1356.
 
 ### Security
 
