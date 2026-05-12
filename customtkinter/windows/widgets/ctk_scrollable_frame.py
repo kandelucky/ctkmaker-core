@@ -36,9 +36,11 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
                  label_text: str = "",
                  label_font: Optional[Union[tuple, CTkFont]] = None,
                  label_anchor: str = "center",
-                 orientation: Literal["vertical", "horizontal"] = "vertical"):
+                 orientation: Literal["vertical", "horizontal"] = "vertical",
+                 auto_hide_scrollbar: bool = False):
 
         self._orientation = orientation
+        self._auto_hide_scrollbar = auto_hide_scrollbar
 
         # dimensions independent of scaling
         self._desired_width = width  # _desired_width and _desired_height, represent desired size set by width and height
@@ -73,7 +75,7 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         self._parent_canvas.configure(width=self._apply_widget_scaling(self._desired_width),
                                       height=self._apply_widget_scaling(self._desired_height))
 
-        self.bind("<Configure>", lambda e: self._parent_canvas.configure(scrollregion=self._parent_canvas.bbox("all")))
+        self.bind("<Configure>", self._update_scroll_region)
         self._parent_canvas.bind("<Configure>", self._fit_frame_dimensions_to_canvas)
 
         if "linux" in sys.platform:
@@ -259,6 +261,26 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
             self._parent_canvas.itemconfigure(self._create_window_id, height=self._parent_canvas.winfo_height())
         elif self._orientation == "vertical":
             self._parent_canvas.itemconfigure(self._create_window_id, width=self._parent_canvas.winfo_width())
+
+        self._check_scroll_necessity()
+
+    def _check_scroll_necessity(self):
+        if not self._auto_hide_scrollbar:
+            return
+
+        canvas_height = self._parent_canvas.winfo_height()
+        content_height = self.winfo_height()
+
+        if content_height <= canvas_height:
+            self._scrollbar.grid_remove()
+            self._parent_canvas.configure(yscrollcommand=None)
+        else:
+            self._scrollbar.grid()
+            self._parent_canvas.configure(yscrollcommand=self._scrollbar.set)
+
+    def _update_scroll_region(self, event=None):
+        self._parent_canvas.configure(scrollregion=self._parent_canvas.bbox("all"))
+        self._check_scroll_necessity()
 
     def _set_scroll_increments(self):
         if sys.platform.startswith("win"):
