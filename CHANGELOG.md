@@ -43,6 +43,10 @@ _(None)_
   configuration) — `port(verbatim)` from
   [`f81cd8d`](https://github.com/FedericoSpada/Custom2kinter/commit/f81cd8d)
   by Logan Cederlof, originally upstream PR#1931. Closes issue #1899.
+- **[Fixed]** `CTkCanvas.coords()` now returns Tkinter's coordinate list
+  (was discarded by the override) — `port(verbatim)` from
+  [`8ff5d94`](https://github.com/FedericoSpada/Custom2kinter/commit/8ff5d94)
+  by DerSchinken, originally upstream PR#2240. Closes issue #1419.
 
 ### Security
 
