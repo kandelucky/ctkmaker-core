@@ -172,6 +172,14 @@ _(None)_
   [upstream PR#2575](https://github.com/TomSchimansky/CustomTkinter/pull/2575)
   by Khalmurad — adapted macOS support only; PR's `copy_fonts()` helper
   intentionally skipped (would regress the Linux `#2693` fix).
+- **[Added]** `selectforeground` and `selectbackground` kwargs on
+  `CTkComboBox`, `CTkEntry`, and `CTkTextbox` — control the selected
+  text colors. CTkComboBox has dedicated constructor + configure/cget
+  handlers; CTkEntry/CTkTextbox pass through to the underlying tkinter
+  widget via their `_valid_tk_*_attributes` sets. Defaults preserve
+  current behavior (`None`/theme fallback). `port(verbatim)` from
+  [upstream PR#2341](https://github.com/TomSchimansky/CustomTkinter/pull/2341)
+  by kr8589 (Aleksey).
 
 ### Security
 
