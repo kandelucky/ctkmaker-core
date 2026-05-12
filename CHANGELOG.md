@@ -131,6 +131,15 @@ _(None)_
   inner_corner_radius caused overlapping geometry). `port(verbatim)` from
   [`92cd651`](https://github.com/ToastyToast25/CustomTkinter/commit/92cd651)
   by ToastyToast25.
+- **[Fixed]** `destroy()` resource leaks across `CTkButton`, `CTkLabel`,
+  `CTkProgressBar`, `CTkTextbox`, `CTkScrollableFrame` — cleans CTkImage
+  configure callbacks (Button/Label), cancels pending `after()` loops
+  (ProgressBar animation, Textbox scrollbar check), unbinds global
+  mouse-wheel + Shift bindings (ScrollableFrame). Prevents Tcl
+  "invalid command name" errors and leaked callback references in
+  long-lived apps with widget churn. `port(verbatim)` from
+  [`0834df3`](https://github.com/ToastyToast25/CustomTkinter/commit/0834df3)
+  by ToastyToast25.
 
 ### Security
 
