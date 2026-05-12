@@ -34,6 +34,10 @@ _(None)_
   (was reading `text_color` due to a typo) — `port(verbatim)` from
   [`b2bb1e0`](https://github.com/FedericoSpada/Custom2kinter/commit/b2bb1e0)
   by Soli Como, originally upstream PR#2063.
+- **[Fixed]** `CTkInputDialog._text_color` copy-paste typo (was assigning
+  `button_hover_color`) — `port(verbatim)` from
+  [`2070277`](https://github.com/FedericoSpada/Custom2kinter/commit/2070277)
+  by Alex McPherson, originally upstream PR#2078.
 
 ### Security
 
