@@ -96,6 +96,11 @@ _(None)_
   on the destination after copy and short-circuits when the destination
   already exists and is readable. Fresh fix (no source port). Closes
   upstream [issue #2693](https://github.com/TomSchimansky/CustomTkinter/issues/2693).
+- **[Fixed]** `CTkComboBox` `justify` kwarg now also applies to the
+  dropdown menu items (was Entry-only — dropdown stayed left-justified).
+  `DropdownMenu` gains a `justify` kwarg + configure/cget handler;
+  default `"left"` keeps existing behavior. Fresh fix (no source port).
+  Closes upstream [issue #2759](https://github.com/TomSchimansky/CustomTkinter/issues/2759).
 
 ### Security
 
