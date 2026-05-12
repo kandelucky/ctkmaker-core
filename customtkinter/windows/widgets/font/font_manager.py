@@ -55,7 +55,12 @@ class FontManager:
         # Linux
         elif sys.platform.startswith("linux"):
             try:
-                shutil.copy(font_path, os.path.expanduser(cls.linux_font_path))
+                dst_dir = os.path.expanduser(cls.linux_font_path)
+                dst = os.path.join(dst_dir, os.path.basename(font_path))
+                if os.path.isfile(dst) and os.access(dst, os.R_OK):
+                    return True  # already installed and readable
+                shutil.copy(font_path, dst)
+                os.chmod(dst, 0o644)
                 return True
             except Exception as err:
                 sys.stderr.write("FontManager error: " + str(err) + "\n")
