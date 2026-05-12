@@ -180,6 +180,12 @@ _(None)_
   current behavior (`None`/theme fallback). `port(verbatim)` from
   [upstream PR#2341](https://github.com/TomSchimansky/CustomTkinter/pull/2341)
   by kr8589 (Aleksey).
+- **[Fixed]** `CTkFrame` inside `CTkScrollableFrame` now uses
+  `top_fg_color` (the visually-stacked theme variant), matching
+  `CTkFrame`-inside-`CTkFrame` nesting. Was inheriting the parent's
+  color, making nested frames visually invisible. `port(verbatim)` from
+  [upstream PR#1298](https://github.com/TomSchimansky/CustomTkinter/pull/1298)
+  by Yivi64 (Yahia).
 
 ### Security
 
