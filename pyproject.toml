@@ -38,6 +38,9 @@ dependencies = [
 # Changelog = "https://github.com/kandelucky/ctkmaker-core/blob/main/CHANGELOG.md"
 # (GitHub handle = kandelucky; copyright holder = Lasha Kandelaki)
 
+[project.entry-points."pyinstaller40"]
+hook-dirs = "customtkinter._pyinstaller:get_hook_dirs"
+
 [tool.setuptools.packages.find]
 include = ["customtkinter*"]
 
