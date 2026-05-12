@@ -45,6 +45,20 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
   identically because the default `border_width` is `0`. `port(verbatim)`
   from [`cb7347b`](https://github.com/FedericoSpada/Custom2kinter/commit/cb7347b)
   by Federico Spada. Closes upstream #2612.
+- **[Added]** Mousewheel scroll detection for `CTkSlider` — Federico's
+  `6a5460b` (co-authored Saul Velazquez). New constructor kwarg
+  `scroll_step: Optional[Union[int, float]] = None` controls per-tick
+  delta (default derived from `number_of_steps`, or `1/20` if unset).
+  `_create_bindings` now wires `<Button-4>` / `<Button-5>` on Linux and
+  `<MouseWheel>` elsewhere. Internal refactor extracts `_update_value()`
+  from `_clicked()` (DRY for the new mousewheel path). The `scroll_step`
+  configure/cget handlers added speculatively in `db08925` now have a
+  real backing attribute. Closes upstream #2388.
+- **[Added]** No-command visual scroll path for `CTkScrollbar` — same
+  commit. When the scrollbar is instantiated without a `command`,
+  mousewheel events still update `_start_value` / `_end_value`
+  visually (in 20 steps across the empty range) so the widget is
+  responsive on its own. Replaces upstream PR #2365.
 
 ### Changed
 
@@ -120,6 +134,17 @@ _(None.)_
   Mostly `port(verbatim)`; `ctk_scrollbar.py` is `port(rewritten)`.
   Showroom changes in `__init__.py` (28 lines) and Federico's own
   CHANGELOG edits intentionally dropped during conflict resolution.
+- **[Fixed]** `CTkScrollbar` mousewheel detection on Linux — `6a5460b`.
+  Completes the partial fix from `8c85d9b`: not only does the event
+  handler branch on `event.num`, but `_create_bindings` now wires
+  `<Button-4>` / `<Button-5>` on Linux (was binding `<MouseWheel>`
+  which never fires there). The prior `8c85d9b` rewrite of
+  `_mouse_scroll_event` is superseded by Federico's broader version
+  (adds darwin branch + no-command path). `port(verbatim)` from
+  [`6a5460b`](https://github.com/FedericoSpada/Custom2kinter/commit/6a5460b);
+  single conflict in `_mouse_scroll_event` resolved by taking
+  Federico's superset (kept the `event.num` clarifying comment).
+  Closes upstream #2777.
 
 ### Security
 
