@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctkmaker-core"
+version = "5.2.2.1"
+description = "A maintained fork of CustomTkinter with composite kwarg sugar and curated bug fixes. Drop-in (`import customtkinter`) for the ekosystema (CTkMessagebox, CTkColorPicker, etc.)."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Lasha Kandelaki", email = "kandelucky.dev@gmail.com" },
+]
+keywords = ["customtkinter", "tkinter", "ui", "gui", "ctk", "ctkmaker"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Software Development :: Widget Sets",
+]
+dependencies = [
+    "darkdetect~=0.3.1",
+    "typing-extensions>=4.4.0",
+    "packaging",
+]
+
+[project.urls]
+# TODO: set when repo published
+# Homepage  = "https://github.com/kandelucky/ctkmaker-core"
+# Issues    = "https://github.com/kandelucky/ctkmaker-core/issues"
+# Changelog = "https://github.com/kandelucky/ctkmaker-core/blob/main/CHANGELOG.md"
+# (GitHub handle = kandelucky; copyright holder = Lasha Kandelaki)
+
+[tool.setuptools.packages.find]
+include = ["customtkinter*"]
+
+[tool.setuptools.package-data]
+customtkinter = [
+    "assets/themes/*.json",
+    "assets/fonts/*.otf",
+    "assets/fonts/Roboto/*.ttf",
+    "assets/icons/*.ico",
+]

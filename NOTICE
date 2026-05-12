@@ -1,0 +1,34 @@
+ctkmaker-core
+=============
+
+This product is a fork of CustomTkinter and includes software developed by:
+
+- Tom Schimansky (https://github.com/TomSchimansky/CustomTkinter)
+  Original CustomTkinter library, MIT License, Copyright (c) 2023
+  Baseline: v5.2.2
+
+Cherry-picked changes and ideas may be sourced from:
+
+- Federico Spada (https://github.com/FedericoSpada/Custom2kinter)
+  Custom2kinter fork, MIT License, Copyright (c) 2026
+
+- wipodev (https://github.com/wipodev/Stukk)
+  Stukk fork, MIT License
+
+- Other contributors as noted in CHANGELOG.md per-pick attribution.
+
+Each cherry-pick is tagged in commit messages as one of:
+  port(verbatim)   — applied as-is, attribution to original author
+  port(rewritten)  — reimplemented for clarity, original idea credited
+  inspired by      — concept borrowed, implementation fully ctkmaker-core's
+
+For per-release attribution of specific picks, see CHANGELOG.md.
+
+ctkmaker-core additions
+-----------------------
+
+- Composite kwarg sugar (font_bold, font_italic, font_size, font_family,
+  font_underline, font_overstrike, font_wrap, font_autofit, enabled,
+  image_color, image_color_disabled) — see docs.
+- Fork identifier markers: __fork__, __fork_version__ in customtkinter/__init__.py
+- Bug-fix cherry-picks from the fork landscape (see CHANGELOG.md)
