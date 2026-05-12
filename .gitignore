@@ -49,3 +49,6 @@ Thumbs.db
 
 # Fork survey artifacts (working notes from fork-analyzer agent; not part of the fork)
 .fork_analyses/
+
+# Internal maintainer working docs (not public-facing)
+PORTING.md
