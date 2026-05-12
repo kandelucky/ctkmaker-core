@@ -52,6 +52,11 @@ _(None)_
   children remained alive after delete) — `port(verbatim)` from
   [`a0a6496`](https://github.com/FedericoSpada/Custom2kinter/commit/a0a6496)
   by ElectricCandlelight, originally upstream PR#1083. Closes issue #1046.
+- **[Fixed]** `CTkScrollableFrame` scrollbar no longer covers the parent
+  frame's border (added `_border_width + 1` padding on the border-facing
+  side of the scrollbar grid) — `port(verbatim)` from
+  [`1ad3c10`](https://github.com/FedericoSpada/Custom2kinter/commit/1ad3c10)
+  by Dipesh Samrāwat, originally upstream PR#2548.
 
 ### Security
 
