@@ -94,6 +94,7 @@ class CTkButton(CTkBaseClass):
         # canvas and draw engine
         self._canvas = CTkCanvas(master=self,
                                  highlightthickness=0,
+                                 takefocus=False,
                                  width=self._apply_widget_scaling(self._desired_width),
                                  height=self._apply_widget_scaling(self._desired_height))
         self._canvas.grid(row=0, column=0, rowspan=5, columnspan=5, sticky="nsew")

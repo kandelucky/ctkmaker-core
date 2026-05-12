@@ -96,12 +96,14 @@ class CTkSwitch(CTkBaseClass):
 
         self._bg_canvas = CTkCanvas(master=self,
                                     highlightthickness=0,
+                                    takefocus=False,
                                     width=self._apply_widget_scaling(self._current_width),
                                     height=self._apply_widget_scaling(self._current_height))
         self._bg_canvas.grid(row=0, column=0, columnspan=3, sticky="nswe")
 
         self._canvas = CTkCanvas(master=self,
                                  highlightthickness=0,
+                                 takefocus=False,
                                  width=self._apply_widget_scaling(self._switch_width),
                                  height=self._apply_widget_scaling(self._switch_height))
         self._canvas.grid(row=0, column=0, sticky="")

@@ -77,6 +77,7 @@ class CTkEntry(CTkBaseClass):
 
         self._canvas = CTkCanvas(master=self,
                                  highlightthickness=0,
+                                 takefocus=False,
                                  width=self._apply_widget_scaling(self._current_width),
                                  height=self._apply_widget_scaling(self._current_height))
         self._draw_engine = DrawEngine(self._canvas)
