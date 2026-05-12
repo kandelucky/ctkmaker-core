@@ -145,6 +145,17 @@ _(None.)_
   single conflict in `_mouse_scroll_event` resolved by taking
   Federico's superset (kept the `event.num` clarifying comment).
   Closes upstream #2777.
+- **[Fixed]** Nested `CTkScrollableFrame` mousewheel double-firing —
+  Federico's `c12c9ab`. When a scrollable frame contains another
+  scrollable widget (`CTkScrollableFrame`, `CTkSlider`, `CTkTextbox`,
+  `CTkScrollbar`), the outer frame no longer scrolls while the cursor
+  is over the inner widget. Renames internal helper
+  `check_if_master_is_canvas` → `_check_if_valid_scroll` (no external
+  callers in ekosystema or CTkMaker — verified). New isinstance branches
+  defer to children of the listed widget classes; nested
+  `CTkScrollableFrame` is detected via `widget._parent_canvas` identity
+  comparison. `port(verbatim)` from
+  [`c12c9ab`](https://github.com/FedericoSpada/Custom2kinter/commit/c12c9ab).
 
 ### Security
 
