@@ -165,6 +165,13 @@ _(None)_
   [upstream PR#2646](https://github.com/TomSchimansky/CustomTkinter/pull/2646)
   by Arritmic. (Companion font-manager commit `a691a21` from the same PR
   intentionally skipped — overlaps with our fresh fix for #2693.)
+- **[Added]** macOS custom font support in `FontManager.load_font()` —
+  new `darwin_font_path = "~/Library/Fonts/"` class variable and a
+  Darwin branch that mirrors the Linux fresh-fix pattern (exists+
+  readable skip, copy, `chmod 0o644`). `port(rewritten)` from
+  [upstream PR#2575](https://github.com/TomSchimansky/CustomTkinter/pull/2575)
+  by Khalmurad — adapted macOS support only; PR's `copy_fonts()` helper
+  intentionally skipped (would regress the Linux `#2693` fix).
 
 ### Security
 
