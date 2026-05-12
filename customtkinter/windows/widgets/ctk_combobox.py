@@ -82,7 +82,8 @@ class CTkComboBox(CTkBaseClass):
                                            fg_color=dropdown_fg_color,
                                            hover_color=dropdown_hover_color,
                                            text_color=dropdown_text_color,
-                                           font=dropdown_font)
+                                           font=dropdown_font,
+                                           justify=justify)
 
         # configure grid system (1x1)
         self.grid_rowconfigure(0, weight=1)
@@ -293,7 +294,9 @@ class CTkComboBox(CTkBaseClass):
             self._command = kwargs.pop("command")
 
         if "justify" in kwargs:
-            self._entry.configure(justify=kwargs.pop("justify"))
+            justify = kwargs.pop("justify")
+            self._entry.configure(justify=justify)
+            self._dropdown_menu.configure(justify=justify)
 
         super().configure(require_redraw=require_redraw, **kwargs)
 
