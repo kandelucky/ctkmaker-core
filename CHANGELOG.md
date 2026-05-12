@@ -156,6 +156,15 @@ _(None)_
   [upstream PR#2764](https://github.com/TomSchimansky/CustomTkinter/pull/2764)
   by chinmay-varier — extracted semantic 1-line change from a diff that
   also reformatted indentation and added wintypes wrappers.
+- **[Fixed]** Linux-only rendering smoothness in `DrawEngine` — defaults
+  `preferred_drawing_method` to `"circle_shapes"` on Linux; uses finer
+  rounding steps (`0.25` for circle_shapes, `1.25x` for polygon_shapes);
+  shaves 0.5px corner_radius and 0.2px border_width when drawing rounded
+  rects with border on Linux. Windows/macOS paths unchanged.
+  `port(verbatim)` from
+  [upstream PR#2646](https://github.com/TomSchimansky/CustomTkinter/pull/2646)
+  by Arritmic. (Companion font-manager commit `a691a21` from the same PR
+  intentionally skipped — overlaps with our fresh fix for #2693.)
 
 ### Security
 
