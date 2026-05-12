@@ -253,7 +253,7 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
                 return
 
             try:
-                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                hwnd = self.winfo_id()
                 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
                 DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19
 
