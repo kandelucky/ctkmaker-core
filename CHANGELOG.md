@@ -140,6 +140,15 @@ _(None)_
   long-lived apps with widget churn. `port(verbatim)` from
   [`0834df3`](https://github.com/ToastyToast25/CustomTkinter/commit/0834df3)
   by ToastyToast25.
+- **[Added]** PyInstaller hook (`customtkinter/_pyinstaller/`) registering
+  `darkdetect` platform submodules as hidden imports and collecting
+  customtkinter data files (themes, icons, fonts). Auto-discovered via
+  the `pyinstaller40` entry-point in `pyproject.toml`. Fixes frozen-app
+  startup `ImportError` for `darkdetect._windows_detect` etc.
+  `port(verbatim)` (hook source) from
+  [`8ca1537`](https://github.com/ToastyToast25/CustomTkinter/commit/8ca1537)
+  by ToastyToast25; entry-point declaration adapted from setup.cfg to
+  pyproject.toml.
 
 ### Security
 
