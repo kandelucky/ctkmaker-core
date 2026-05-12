@@ -101,6 +101,12 @@ _(None)_
   `DropdownMenu` gains a `justify` kwarg + configure/cget handler;
   default `"left"` keeps existing behavior. Fresh fix (no source port).
   Closes upstream [issue #2759](https://github.com/TomSchimansky/CustomTkinter/issues/2759).
+- **[Fixed]** Inner `CTkCanvas` widgets on `CTkButton`, `CTkCheckBox`,
+  `CTkSwitch`, `CTkEntry` no longer accept keyboard focus (was breaking
+  Tab traversal — focus landed on the invisible canvas). `takefocus=False`
+  set at construction. `CTkLabel` intentionally not patched here (its
+  Canvas can be handled at the consumer layer). Fresh fix (no source
+  port). Closes upstream [issue #2803](https://github.com/TomSchimansky/CustomTkinter/issues/2803).
 
 ### Security
 
