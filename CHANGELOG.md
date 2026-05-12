@@ -186,6 +186,13 @@ _(None)_
   color, making nested frames visually invisible. `port(verbatim)` from
   [upstream PR#1298](https://github.com/TomSchimansky/CustomTkinter/pull/1298)
   by Yivi64 (Yahia).
+- **[Added]** `auto_hide_scrollbar: bool = False` kwarg on
+  `CTkScrollableFrame`. When True, scrollbar hides when content fits
+  and reappears on overflow. Default `False` preserves existing
+  always-visible behavior. `port(rewritten)` from
+  [upstream PR#2539](https://github.com/TomSchimansky/CustomTkinter/pull/2539)
+  by HelloWorld-er — gated behind opt-in kwarg (PR enabled by default,
+  which would silently change UX).
 
 ### Security
 
