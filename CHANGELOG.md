@@ -38,6 +38,11 @@ _(None)_
   `button_hover_color`) — `port(verbatim)` from
   [`2070277`](https://github.com/FedericoSpada/Custom2kinter/commit/2070277)
   by Alex McPherson, originally upstream PR#2078.
+- **[Fixed]** `CTkButton` outer-grid minsize now resets to `0` when only
+  text or only image is present (was leaving stale minsize from prior
+  configuration) — `port(verbatim)` from
+  [`f81cd8d`](https://github.com/FedericoSpada/Custom2kinter/commit/f81cd8d)
+  by Logan Cederlof, originally upstream PR#1931. Closes issue #1899.
 
 ### Security
 
