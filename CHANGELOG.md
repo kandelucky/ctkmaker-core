@@ -68,6 +68,13 @@ _(None)_
   side of the scrollbar grid) — `port(verbatim)` from
   [`1ad3c10`](https://github.com/FedericoSpada/Custom2kinter/commit/1ad3c10)
   by Dipesh Samrāwat, originally upstream PR#2548.
+- **[Fixed]** `CTkTabview.rename(old, new)` now (a) replaces the name
+  in-place in `_name_list` instead of removing + appending (preserves
+  tab order) and (b) updates `_current_name` if the active tab was
+  renamed (previously broke the active-tab frame connection) —
+  `port(verbatim)` from
+  [`27db1bd`](https://github.com/FedericoSpada/Custom2kinter/commit/27db1bd)
+  by Jan Görl, originally upstream PR#2256.
 
 ### Security
 
