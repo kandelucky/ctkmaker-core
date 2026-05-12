@@ -19,7 +19,23 @@ _(Track B + D additions land here.)_
 
 ### Changed
 
-_(Semantic UX changes per `73ca84f` land here with release-note framing.)_
+- **[Changed]** `configure()` audit for all widgets — Federico's
+  `db08925`. Reorders existing kwarg handlers for consistency across
+  widgets, introduces a `require_new_state` flag pattern in CheckBox/
+  Switch/RadioButton, allows `configure(image="")` to clear image
+  without warning (`_check_image_type` now accepts `""` as None).
+  Adds live-configure for previously init-only properties:
+  - CTkCheckBox: `onvalue`, `offvalue`
+  - CTkSwitch: `onvalue`, `offvalue`
+  - CTkRadioButton: `value`
+  - CTkSlider: `scroll_step` (also gains a `cget` handler)
+  - DropdownMenu: `min_character_width`
+
+  Also: blue theme CheckBox `hover_color` darkened for visibility
+  (was matching `fg_color` when checked). `port(verbatim)` from
+  [`db08925`](https://github.com/FedericoSpada/Custom2kinter/commit/db08925)
+  by Federico Spada (co-authored Shubham25dec, fred Jose Diaz).
+  Closes upstream #1215, #1750, #2494; replaces stale PRs #2412, #2719.
 
 ### Deprecated
 
