@@ -20,6 +20,12 @@ release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
   `port(verbatim)` from
   [`cea11a0`](https://github.com/FedericoSpada/Custom2kinter/commit/cea11a0)
   by bibo.
+- **[Added]** `orientation` option on `CTkSegmentedButton` (`"horizontal"`
+  default, `"vertical"` opt-in) — switches grid layout and corner-color
+  routing. **Init-only** (no `configure()` handler in fork; requires
+  widget recreation to change). `port(verbatim)` from
+  [`f159a25`](https://github.com/FedericoSpada/Custom2kinter/commit/f159a25)
+  by Philip Nelson, originally upstream PR#2333.
 
 ### Changed
 
