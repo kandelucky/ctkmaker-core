@@ -80,6 +80,12 @@ _(None)_
   `port(verbatim)` from
   [`5c77c99`](https://github.com/FedericoSpada/Custom2kinter/commit/5c77c99)
   by Jeremiah, originally upstream PR#2352.
+- **[Fixed]** `CTkScrollbar` now preserves the grab-point offset when
+  dragging the handle (was jumping to put click at handle center,
+  losing the grab position). Track-clicks outside the handle still
+  jump to the click position. `port(verbatim)` from
+  [`907300e`](https://github.com/FedericoSpada/Custom2kinter/commit/907300e)
+  by timgdx, originally upstream PR#2158.
 
 ### Security
 
