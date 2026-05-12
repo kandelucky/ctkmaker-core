@@ -47,6 +47,11 @@ _(None)_
   (was discarded by the override) — `port(verbatim)` from
   [`8ff5d94`](https://github.com/FedericoSpada/Custom2kinter/commit/8ff5d94)
   by DerSchinken, originally upstream PR#2240. Closes issue #1419.
+- **[Fixed]** `CTkTabview.delete(name)` now destroys the underlying
+  `CTkFrame` instead of just hiding it (was a memory leak — frame +
+  children remained alive after delete) — `port(verbatim)` from
+  [`a0a6496`](https://github.com/FedericoSpada/Custom2kinter/commit/a0a6496)
+  by ElectricCandlelight, originally upstream PR#1083. Closes issue #1046.
 
 ### Security
 
