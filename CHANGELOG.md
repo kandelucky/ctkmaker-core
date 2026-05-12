@@ -116,6 +116,13 @@ _(None)_
   set at construction. `CTkLabel` intentionally not patched here (its
   Canvas can be handled at the consumer layer). Fresh fix (no source
   port). Closes upstream [issue #2803](https://github.com/TomSchimansky/CustomTkinter/issues/2803).
+- **[Fixed]** `DropdownMenu` now flips above the parent widget when the
+  default position would extend past the screen bottom. Estimates
+  dropdown height from item count; only flips when sufficient space
+  exists above. Silent fallback to default position on errors.
+  `port(verbatim)` from
+  [`a7979a3`](https://github.com/ToastyToast25/CustomTkinter/commit/a7979a3)
+  by ToastyToast25.
 
 ### Security
 
