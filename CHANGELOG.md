@@ -123,6 +123,14 @@ _(None)_
   `port(verbatim)` from
   [`a7979a3`](https://github.com/ToastyToast25/CustomTkinter/commit/a7979a3)
   by ToastyToast25.
+- **[Fixed]** `DrawEngine` progress-bar rendering at small dimensions and
+  vertical orientation — clamps `inner_corner_radius` to fit within
+  inner dimensions (prevents collapsed polygons); adds width check
+  (not just height) when deciding whether to create extra corner ovals
+  / rectangle_2 (fixes vertical progress bars where width < 2 *
+  inner_corner_radius caused overlapping geometry). `port(verbatim)` from
+  [`92cd651`](https://github.com/ToastyToast25/CustomTkinter/commit/92cd651)
+  by ToastyToast25.
 
 ### Security
 
