@@ -36,6 +36,28 @@ _(Track B + D additions land here.)_
   [`db08925`](https://github.com/FedericoSpada/Custom2kinter/commit/db08925)
   by Federico Spada (co-authored Shubham25dec, fred Jose Diaz).
   Closes upstream #1215, #1750, #2494; replaces stale PRs #2412, #2719.
+- **[Changed]** `cget()` audit for all widgets — Federico's `8d62feb`.
+  Adds missing cget handlers across all widgets and standardizes
+  attribute names/positions. New cget handlers:
+  - CTkRadioButton: `command`
+  - CTkSegmentedButton: `background_corner_colors`, `state`
+  - CTkSlider: `orientation`
+  - CTkScrollbar: `button_color`, `button_hover_color`
+  - CTkScrollableFrame: `orientation`
+  - CTkTextbox: `activate_scrollbars`, `scrollbar_button_color`,
+    `scrollbar_button_hover_color`
+  - CTkImage: `dark_image`, `size`
+  - DropdownMenu: `values` now returns a defensive `copy.copy(...)`
+
+  **Breaking:** `CTkScrollbar.cget("scrollbar_color")` and
+  `cget("scrollbar_hover_color")` now raise `ValueError` — use the
+  canonical `button_color` / `button_hover_color`. Verified that
+  neither CTkMessagebox, CTkColorPicker, nor CTkMaker codebases
+  reference the old names. `port(verbatim)` from
+  [`8d62feb`](https://github.com/FedericoSpada/Custom2kinter/commit/8d62feb)
+  by Federico Spada — DropdownMenu conflict resolved by keeping our
+  prior `justify` handler alongside Federico's defensive copy.
+  Closes upstream #1212, #2615, #2756.
 
 ### Deprecated
 
