@@ -15,6 +15,11 @@ release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 - `LICENSE` consolidating upstream MIT + fork additions copyright.
 - `NOTICE` with detailed attribution table for cherry-pick sources.
 - `pyproject.toml` (PEP 621) with PyPI name `ctkmaker-core`, Python module name `customtkinter`.
+- **[Added]** `segmented_button_font` option on `CTkTabview` — accepts
+  `CTkFont` or tuple, configurable at init and via `configure()` —
+  `port(verbatim)` from
+  [`cea11a0`](https://github.com/FedericoSpada/Custom2kinter/commit/cea11a0)
+  by bibo.
 
 ### Changed
 
