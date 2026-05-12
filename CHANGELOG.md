@@ -75,6 +75,11 @@ _(None)_
   `port(verbatim)` from
   [`27db1bd`](https://github.com/FedericoSpada/Custom2kinter/commit/27db1bd)
   by Jan Görl, originally upstream PR#2256.
+- **[Fixed]** `CTkScrollableFrame.destroy()` now also destroys the internal
+  `_parent_frame` (was leaking the CTkFrame holding canvas + scrollbar) —
+  `port(verbatim)` from
+  [`5c77c99`](https://github.com/FedericoSpada/Custom2kinter/commit/5c77c99)
+  by Jeremiah, originally upstream PR#2352.
 
 ### Security
 
