@@ -69,7 +69,28 @@ _(None.)_
 
 ### Fixed
 
-_(Track B + D fixes land here.)_
+- **[Fixed]** Federico's mandatory regression follow-up to `db08925` /
+  `8d62feb` — `8c85d9b`. Fixes:
+  - `CTk` / `CTkToplevel`: `bind_all("<Button-1>", ...)` for focus
+    transfer (the `73ca84f` UX feature) brought forward and hasattr-
+    guarded so click on a widget without `focus_set` (e.g. a native
+    Menu) no longer raises `AttributeError`
+  - `CTkScrollbar._mouse_scroll_event`: Linux path now uses `event.num`
+    (Button-4 up, Button-5 down) instead of `event.delta` which is 0
+    on Linux. `port(rewritten)` — Federico's diff had an indentation
+    bug; cleaned up
+  - `DrawEngine.DRAWING_METHODS` class var added
+    (`["polygon_shapes", "font_shapes", "circle_shapes"]`)
+  - `CTkComboBox._open_dropdown_menu` / `CTkOptionMenu._open_dropdown_menu`:
+    `_close_on_next_click = True` now set AFTER `open()` (was before —
+    could misfire if `open()` had side effects)
+  - `ThemeManager`: injects missing `CTkLabel.border_width=0` and
+    `border_color=["black","white"]` into legacy theme files (forward-
+    compat with the `cb7347b` Label border feature pending in Track B.2)
+
+  Mostly `port(verbatim)`; `ctk_scrollbar.py` is `port(rewritten)`.
+  Showroom changes in `__init__.py` (28 lines) and Federico's own
+  CHANGELOG edits intentionally dropped during conflict resolution.
 
 ### Security
 
