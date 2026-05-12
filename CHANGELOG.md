@@ -35,6 +35,16 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
   [`b33e220`](https://github.com/FedericoSpada/Custom2kinter/commit/b33e220)
   by Federico Spada. Showroom-context whitespace change in `__init__.py`
   dropped during conflict resolution. Closes upstream #1862.
+- **[Added]** Border support for `CTkLabel` — Federico's `cb7347b`.
+  New constructor kwargs `border_width` and `border_color` (defaults
+  hidden — `border_width: 0`). Adds matching `configure()` / `cget()`
+  handlers; `_draw()` now passes the real border width to
+  `draw_rounded_rect_with_border` (was hardcoded to `0`). Theme defaults
+  injected into `blue`/`dark-blue`/`green` (`border_color:
+  ["#979DA2", "#565B5E"]`). Backward-compatible: existing labels render
+  identically because the default `border_width` is `0`. `port(verbatim)`
+  from [`cb7347b`](https://github.com/FedericoSpada/Custom2kinter/commit/cb7347b)
+  by Federico Spada. Closes upstream #2612.
 
 ### Changed
 
