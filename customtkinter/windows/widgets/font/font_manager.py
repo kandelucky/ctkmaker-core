@@ -7,6 +7,7 @@ from typing import Union
 class FontManager:
 
     linux_font_path = "~/.fonts/"
+    darwin_font_path = "~/Library/Fonts/"
 
     @classmethod
     def init_font_manager(cls):
@@ -66,6 +67,20 @@ class FontManager:
                 sys.stderr.write("FontManager error: " + str(err) + "\n")
                 return False
 
-        # macOS and others
+        # macOS
+        elif sys.platform.startswith("darwin"):
+            try:
+                dst_dir = os.path.expanduser(cls.darwin_font_path)
+                dst = os.path.join(dst_dir, os.path.basename(font_path))
+                if os.path.isfile(dst) and os.access(dst, os.R_OK):
+                    return True  # already installed and readable
+                shutil.copy(font_path, dst)
+                os.chmod(dst, 0o644)
+                return True
+            except Exception as err:
+                sys.stderr.write("FontManager error: " + str(err) + "\n")
+                return False
+
+        # others
         else:
             return False
