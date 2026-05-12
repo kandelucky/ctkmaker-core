@@ -15,7 +15,26 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
 
 ### Added
 
-_(Track B + D additions land here.)_
+- **[Added]** Utility methods for inspecting / manipulating selected
+  state on widgets — Federico's `b33e220`:
+  - `CTkComboBox.index([value])` — returns the index of the current or
+    given value
+  - `CTkOptionMenu.index([value])` — same shape
+  - `CTkSegmentedButton.index([value])` + `len()` — segment helpers
+  - `CTkTabview.get([index])` — extended (optional `index` param;
+    no-arg returns the active tab as before) + new `index([name])`
+    and `len()`
+  - `CTkEntry.set(string)` — clears and inserts in one call (mirrors
+    `CTkTextbox.set`)
+  - `CTkCheckBox.set(state, from_variable_callback=False)` and
+    `CTkSwitch.set(state, ...)` — signature gained internal-use kwarg;
+    public 1-arg call unchanged
+  - `CTkSlider.get()` return type narrowed to `float`
+
+  `port(verbatim)` from
+  [`b33e220`](https://github.com/FedericoSpada/Custom2kinter/commit/b33e220)
+  by Federico Spada. Showroom-context whitespace change in `__init__.py`
+  dropped during conflict resolution. Closes upstream #1862.
 
 ### Changed
 
