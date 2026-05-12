@@ -26,6 +26,15 @@ release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
   widget recreation to change). `port(verbatim)` from
   [`f159a25`](https://github.com/FedericoSpada/Custom2kinter/commit/f159a25)
   by Philip Nelson, originally upstream PR#2333.
+- **[Added]** `CTk.save_geometry()` / `CTk.restore_geometry(str)` —
+  DPI-independent geometry persistence. `save_geometry` returns the
+  current geometry in logical (unscaled) coordinates; `restore_geometry`
+  clamps to current screen bounds (ensures at least 100px visible),
+  re-fits within `_min_width`/`_min_height`, and centers if no position
+  was saved. `port(verbatim)` from
+  [`c65fb05`](https://github.com/ToastyToast25/CustomTkinter/commit/c65fb05)
+  by ToastyToast25. Closes issue #2647 family (geometry restore after
+  DPI/monitor change).
 
 ### Changed
 
