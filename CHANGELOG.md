@@ -30,7 +30,10 @@ _(None)_
 
 ### Fixed
 
-_(Phase 2 cherry-picks land here, each with `port(verbatim)` / `port(rewritten)` / `inspired by` tag and source attribution.)_
+- **[Fixed]** `CTkLabel.text_color_disabled` now reads its own theme key
+  (was reading `text_color` due to a typo) — `port(verbatim)` from
+  [`b2bb1e0`](https://github.com/FedericoSpada/Custom2kinter/commit/b2bb1e0)
+  by Soli Como, originally upstream PR#2063.
 
 ### Security
 
