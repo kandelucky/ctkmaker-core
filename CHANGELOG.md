@@ -92,6 +92,10 @@ _(None)_
   `port(verbatim)` from
   [`344b30e`](https://github.com/TomSchimansky/CustomTkinter/commit/344b30e)
   by Tom Schimansky (upstream unmerged). Closes upstream issue #1356.
+- **[Fixed]** `FontManager` Linux font installer now sets `0o644` perms
+  on the destination after copy and short-circuits when the destination
+  already exists and is readable. Fresh fix (no source port). Closes
+  upstream [issue #2693](https://github.com/TomSchimansky/CustomTkinter/issues/2693).
 
 ### Security
 
