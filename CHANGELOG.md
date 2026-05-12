@@ -149,6 +149,13 @@ _(None)_
   [`8ca1537`](https://github.com/ToastyToast25/CustomTkinter/commit/8ca1537)
   by ToastyToast25; entry-point declaration adapted from setup.cfg to
   pyproject.toml.
+- **[Fixed]** Dark titlebar on Windows now targets the Tk window's HWND
+  directly via `self.winfo_id()` (was `GetParent(winfo_id())` which
+  could return the wrong handle or NULL depending on window ownership).
+  Applied in both `CTk` and `CTkToplevel`. `port(rewritten)` from
+  [upstream PR#2764](https://github.com/TomSchimansky/CustomTkinter/pull/2764)
+  by chinmay-varier — extracted semantic 1-line change from a diff that
+  also reformatted indentation and added wintypes wrappers.
 
 ### Security
 
