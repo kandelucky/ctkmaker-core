@@ -59,6 +59,9 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
   mousewheel events still update `_start_value` / `_end_value`
   visually (in 20 steps across the empty range) so the widget is
   responsive on its own. Replaces upstream PR #2365.
+- **[Added]** `gold` color theme — Federico's `73bc7ad`. New built-in
+  theme registered in `ThemeManager._built_in_themes`. Use via
+  `ctk.set_default_color_theme("gold")`.
 
 ### Changed
 
@@ -101,6 +104,22 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
   by Federico Spada — DropdownMenu conflict resolved by keeping our
   prior `justify` handler alongside Federico's defensive copy.
   Closes upstream #1212, #2615, #2756.
+- **[Changed]** `CTkButton` anchor now propagates to inner `_text_label`
+  and `_image_label` — Federico's `73bc7ad`. Previously the button's
+  `anchor` kwarg only affected the inner Label's placement within the
+  button; now the Label's own text/image anchor also follows the kwarg.
+  Visual effect appears when the Label is wider than its content
+  (image+text compound, wraplength, fixed-width buttons).
+  `configure(anchor=...)` propagates to both inner labels live.
+  CircleButton inherits transparently (override touches `_create_grid`
+  only).
+- **[Changed]** Removed dead `sweetkind` entry from
+  `ThemeManager._built_in_themes` — same commit. No `sweetkind.json`
+  shipped in this repo so no behavior change; just cleanup.
+- **[Changed]** Theme file cosmetic normalization — same commit.
+  `blue`/`green`: whitespace standardization after `text_color":`;
+  `dark-blue`: hex color case (`#3a7ebf` → `#3A7EBF` etc). Pure
+  cosmetic, no rendering difference.
 
 ### Deprecated
 
@@ -156,6 +175,14 @@ _(None.)_
   `CTkScrollableFrame` is detected via `widget._parent_canvas` identity
   comparison. `port(verbatim)` from
   [`c12c9ab`](https://github.com/FedericoSpada/Custom2kinter/commit/c12c9ab).
+- **[Fixed]** `CTkEntry.textvariable` trace leak — Federico's `73bc7ad`.
+  `destroy()` now removes the textvariable trace before super destroy;
+  `configure(textvariable=other_var)` properly removes the old trace
+  before adding the new one (was leaving the previous trace attached,
+  causing callbacks to fire on stale entries). Closes upstream #1981,
+  #2743. Replaces upstream PRs #2077, #2173, #2741. `port(verbatim)`
+  from [`73bc7ad`](https://github.com/FedericoSpada/Custom2kinter/commit/73bc7ad)
+  by Federico Spada (co-authored federicomassi, Pedro Perdigão, Nerogar).
 
 ### Security
 
