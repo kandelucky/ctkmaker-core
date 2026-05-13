@@ -27,8 +27,5 @@ For per-release attribution of specific picks, see CHANGELOG.md.
 ctkmaker-core additions
 -----------------------
 
-- Composite kwarg sugar (font_bold, font_italic, font_size, font_family,
-  font_underline, font_overstrike, font_wrap, font_autofit, enabled,
-  image_color, image_color_disabled) — see docs.
 - Fork identifier markers: __fork__, __fork_version__ in customtkinter/__init__.py
 - Bug-fix cherry-picks from the fork landscape (see CHANGELOG.md)
