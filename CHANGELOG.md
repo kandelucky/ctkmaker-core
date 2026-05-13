@@ -212,6 +212,20 @@ _(None.)_
   by Federico Spada (co-authored Jan Görl, Rivka Sternbuch). Showroom
   changes in `__init__.py` dropped during conflict resolution per
   established workflow.
+- **[Fixed]** `CTkToplevel` no longer overrides user-supplied
+  `iconbitmap()` 200 ms after init — upstream PR#2162 (`84222ab` by
+  timgdx). Removes the redundant inline
+  `self.after(200, lambda: self.iconbitmap(CustomTkinter_icon))` call
+  from `__init__` that bypassed the `_iconbitmap_method_called`
+  sentinel; flips the sentinel to start `False` (was `True`, inverted);
+  adds a missing `iconbitmap()` override alongside `wm_iconbitmap()`
+  so both calling conventions flip the sentinel. After this, the
+  canonical `_windows_set_titlebar_icon` helper (also scheduled at
+  +200 ms) correctly defers to user-set icons. CTkMaker's
+  `_patch_ctk_toplevel_icon` race-timing workaround (schedules icon
+  at +250 ms) continues to work unchanged — last write still wins.
+  Closes upstream #1511, #2160. `port(verbatim)` from
+  [`84222ab`](https://github.com/TomSchimansky/CustomTkinter/commit/84222ab).
 
 ### Security
 
