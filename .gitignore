@@ -51,7 +51,4 @@ Thumbs.db
 .fork_analyses/
 
 # Internal maintainer working docs (not public-facing)
-PORTING.md
-ARCHITECTURE_ANALYSIS.md
-NAVIGATION.md
-CHERRY_PICKS.md
+ROADMAP.md
