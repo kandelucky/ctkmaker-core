@@ -36,6 +36,17 @@ print(ctk.__version__)       # "5.2.2"  (upstream baseline)
 
 MIT. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) for attributions to upstream CustomTkinter (Tom Schimansky) and other fork contributors whose work was cherry-picked.
 
+## Credits & contributing
+
+`ctkmaker-core` exists because of the people whose CustomTkinter work was cherry-picked into it. Thank you to:
+
+- [Tom Schimansky](https://github.com/TomSchimansky) — author of CustomTkinter; the baseline this fork is built on.
+- [Federico Spada](https://github.com/FedericoSpada) — `Custom2kinter` is the primary source of cherry-picked fixes and the `configure()`/`cget()` audit triad.
+- [ToastyToast25](https://github.com/ToastyToast25) — DPI, destroy-cleanup, and rendering improvements.
+- ...and every individual PR author credited per-pick in [`CHANGELOG.md`](CHANGELOG.md).
+
+If you've shipped a CustomTkinter fix or improvement of your own, please open an issue or PR — happy to look at it together.
+
 ## Project status
 
 Pre-1.0. CTkMaker is the primary consumer and drives the roadmap.
