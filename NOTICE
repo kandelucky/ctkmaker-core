@@ -15,9 +15,6 @@ Cherry-picked changes and ideas may be sourced from:
 - ToastyToast25 (https://github.com/ToastyToast25/CustomTkinter)
   CustomTkinter fork, MIT License
 
-- wipodev (https://github.com/wipodev/Stukk)
-  Stukk fork, MIT License (repository unavailable as of 2026-05-12)
-
 - Other contributors as noted in CHANGELOG.md per-pick attribution.
 
 Each cherry-pick is tagged in commit messages as one of:

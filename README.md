@@ -3,7 +3,7 @@
 A maintained fork of [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) (v5.2.2 baseline) with:
 
 - **Composite kwarg sugar** — `widget.configure(font_bold=True, font_size=14, label_enabled=False)` works natively, no helper boilerplate in exported code.
-- **Curated bug fixes** — cherry-picked from the active fork landscape (Custom2kinter, Stukk).
+- **Curated bug fixes** — cherry-picked from the active fork landscape (Custom2kinter, ToastyToast25, upstream PRs).
 - **Drop-in module name** — still `import customtkinter as ctk`. CTkMessagebox, CTkColorPicker, CTkScrollableDropdown, CTkColorPalette work unchanged.
 
 **PyPI:** [`ctkmaker-core`](https://pypi.org/project/ctkmaker-core/)
