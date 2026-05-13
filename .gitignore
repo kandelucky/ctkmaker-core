@@ -52,3 +52,5 @@ Thumbs.db
 
 # Internal maintainer working docs (not public-facing)
 PORTING.md
+ARCHITECTURE_ANALYSIS.md
+NAVIGATION.md
