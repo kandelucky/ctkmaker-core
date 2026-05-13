@@ -6,6 +6,8 @@ A maintained fork of [CustomTkinter](https://github.com/TomSchimansky/CustomTkin
 - **Curated bug fixes** — cherry-picked from the active fork landscape (Custom2kinter, Stukk).
 - **Drop-in module name** — still `import customtkinter as ctk`. CTkMessagebox, CTkColorPicker, CTkScrollableDropdown, CTkColorPalette work unchanged.
 
+**PyPI:** [`ctkmaker-core`](https://pypi.org/project/ctkmaker-core/)
+
 ## Installation
 
 ```bash
@@ -16,13 +18,13 @@ pip install ctkmaker-core
 ```python
 import customtkinter as ctk
 print(ctk.__fork__)          # "ctkmaker-core"
-print(ctk.__fork_version__)  # "5.2.2.1"
+print(ctk.__fork_version__)  # "5.3.1"
 print(ctk.__version__)       # "5.2.2"  (upstream baseline)
 ```
 
 ## What's different from vanilla CustomTkinter 5.2.2
 
-Tracked in [`CHANGELOG.md`](CHANGELOG.md) per release. Detailed diff and Precedence Rules per composite live in [`docs/spec/FORK.md`](docs/spec/FORK.md) (Phase 7 — pending).
+Tracked in [`CHANGELOG.md`](CHANGELOG.md) per release. Detailed diff and Precedence Rules per composite live in [`docs/spec/FORK.md`](docs/spec/FORK.md).
 
 ## Composite kwargs — quick example
 
@@ -48,7 +50,7 @@ Native CTk API stays fully accessible. Composite kwargs are **sugar**, never rep
 ## Platform support
 
 - **Primary target**: Windows 11 (development + manual testing)
-- **Linux / macOS**: best-effort until dedicated CI runs land (Phase 7.2). PRs welcome.
+- **Linux / macOS**: best-effort until dedicated CI runs land. PRs welcome.
 
 ## License
 
