@@ -62,6 +62,10 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
 - **[Added]** `gold` color theme — Federico's `73bc7ad`. New built-in
   theme registered in `ThemeManager._built_in_themes`. Use via
   `ctk.set_default_color_theme("gold")`.
+- **[Added]** `DropdownMenu.close()` and `DropdownMenu.is_open()` —
+  Federico's `73ca84f`. New internal helpers used by `CTkComboBox` /
+  `CTkOptionMenu` to detect and dismiss dropdowns. `is_open()` returns
+  `bool(self.winfo_viewable())`; `close()` calls `self.unpost()`.
 
 ### Changed
 
@@ -120,6 +124,18 @@ Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
   `blue`/`green`: whitespace standardization after `text_color":`;
   `dark-blue`: hex color case (`#3a7ebf` → `#3A7EBF` etc). Pure
   cosmetic, no rendering difference.
+- **[Changed]** ⚠ **Semantic UX**: `CTkButton` fires `command` on mouse
+  release, not press — Federico's `73ca84f`. Bindings switch from
+  `<Button-1>` to `<ButtonRelease-1>`; the private handler is renamed
+  `_clicked` → `_on_release` and guarded by a new `_mouse_inside` flag
+  (tracked via `_on_enter` / `_on_leave`). Users can now cancel a click
+  by dragging away before release — matches browser / OS button UX.
+  Internal-only method rename (no external callers in ekosystema or
+  CTkMaker, verified). CircleButton inherits the new semantics
+  transparently. The `8c85d9b` `set_focus` hasattr-guarded function on
+  `CTk` / `CTkToplevel` is preserved over Federico's plain
+  `lambda event: event.widget.focus_set()`. Closes upstream #2126,
+  #2257, #2722. Replaces upstream PRs #2251, #2736.
 
 ### Deprecated
 
@@ -183,6 +199,19 @@ _(None.)_
   #2743. Replaces upstream PRs #2077, #2173, #2741. `port(verbatim)`
   from [`73bc7ad`](https://github.com/FedericoSpada/Custom2kinter/commit/73bc7ad)
   by Federico Spada (co-authored federicomassi, Pedro Perdigão, Nerogar).
+- **[Fixed]** Clicking a `CTkComboBox` / `CTkOptionMenu` entry while
+  the dropdown is already open now closes the dropdown — Federico's
+  `73ca84f`. Previously, hover-then-click could leave the dropdown
+  stuck open. New `_close_on_next_click` flag (set after
+  `_open_dropdown_menu`, synced on `_on_enter` via
+  `DropdownMenu.is_open()`) branches `_clicked` into open vs close
+  paths. The `8c85d9b` fix for setting the flag AFTER `open()` (not
+  before) is preserved on top of Federico's mechanism. Closes upstream
+  #2386. `port(verbatim)` from
+  [`73ca84f`](https://github.com/FedericoSpada/Custom2kinter/commit/73ca84f)
+  by Federico Spada (co-authored Jan Görl, Rivka Sternbuch). Showroom
+  changes in `__init__.py` dropped during conflict resolution per
+  established workflow.
 
 ### Security
 
