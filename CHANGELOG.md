@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.3.2] — 2026-05-13
+
+### Fixed
+
+- **[Fixed]** Deferred `after()` focus restore in `CTkToplevel`,
+  `CTk`, and `CTkInputDialog` no longer crashes with `bad window path
+  name` when the saved widget was destroyed before the callback fires.
+  New `safe_focus()` helper guards with `winfo_exists()` + `TclError`.
+
 ## [5.3.1] — 2026-05-13
 
 ### Removed

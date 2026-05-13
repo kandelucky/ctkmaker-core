@@ -6,6 +6,7 @@ from .widgets import CTkButton
 from .widgets.theme import ThemeManager
 from .ctk_toplevel import CTkToplevel
 from .widgets.font import CTkFont
+from .widgets.utility.utility_functions import safe_focus
 
 
 class CTkInputDialog(CTkToplevel):
@@ -96,7 +97,7 @@ class CTkInputDialog(CTkToplevel):
                                         command=self._cancel_event)
         self._cancel_button.grid(row=2, column=1, columnspan=1, padx=(10, 20), pady=(0, 20), sticky="ew")
 
-        self.after(150, lambda: self._entry.focus())  # set focus to entry with slight delay, otherwise it won't work
+        self.after(150, safe_focus, self._entry)  # set focus to entry with slight delay, otherwise it won't work
         self._entry.bind("<Return>", self._ok_event)
 
     def _ok_event(self, event=None):

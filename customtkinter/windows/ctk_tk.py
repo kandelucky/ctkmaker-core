@@ -10,7 +10,7 @@ from .widgets.theme import ThemeManager
 from .widgets.scaling import CTkScalingBaseClass
 from .widgets.appearance_mode import CTkAppearanceModeBaseClass
 
-from customtkinter.windows.widgets.utility.utility_functions import pop_from_dict_by_set, check_kwargs_empty
+from customtkinter.windows.widgets.utility.utility_functions import pop_from_dict_by_set, check_kwargs_empty, safe_focus
 
 CTK_PARENT_CLASS = tkinter.Tk
 
@@ -329,7 +329,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
                 pass  # wait for update or mainloop to be called
 
             if self.focused_widget_before_widthdraw is not None:
-                self.after(1, self.focused_widget_before_widthdraw.focus)
+                self.after(1, safe_focus, self.focused_widget_before_widthdraw)
                 self.focused_widget_before_widthdraw = None
 
     def save_geometry(self) -> str:

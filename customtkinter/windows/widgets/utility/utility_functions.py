@@ -1,3 +1,19 @@
+import tkinter
+
+
+def safe_focus(widget) -> None:
+    """Focus ``widget`` if it still exists. Used by deferred ``after``
+    callbacks (titlebar withdraw+deiconify focus restore, input dialog
+    focus delay) where the saved widget may have been destroyed before
+    the callback fires — e.g. inline editors that commit + destroy on
+    ``<FocusOut>`` when the spawning dialog steals focus.
+    """
+    try:
+        if widget.winfo_exists():
+            widget.focus()
+    except tkinter.TclError:
+        pass
+
 
 def pop_from_dict_by_set(dictionary: dict, valid_keys: set) -> dict:
     """ remove and create new dict with key value pairs of dictionary, where key is in valid_keys """

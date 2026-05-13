@@ -10,7 +10,7 @@ from .widgets.theme import ThemeManager
 from .widgets.scaling import CTkScalingBaseClass
 from .widgets.appearance_mode import CTkAppearanceModeBaseClass
 
-from customtkinter.windows.widgets.utility.utility_functions import pop_from_dict_by_set, check_kwargs_empty
+from customtkinter.windows.widgets.utility.utility_functions import pop_from_dict_by_set, check_kwargs_empty, safe_focus
 
 
 class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
@@ -255,7 +255,7 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
             self.after(5, self._revert_withdraw_after_windows_set_titlebar_color)
 
             if self.focused_widget_before_widthdraw is not None:
-                self.after(10, self.focused_widget_before_widthdraw.focus)
+                self.after(10, safe_focus, self.focused_widget_before_widthdraw)
                 self.focused_widget_before_widthdraw = None
 
     def _revert_withdraw_after_windows_set_titlebar_color(self):
