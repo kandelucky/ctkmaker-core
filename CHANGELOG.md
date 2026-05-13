@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.3.1] — 2026-05-13
+
+### Removed
+
+- **[Removed]** CTkToplevel's bundled-icon override on Windows. Dropped
+  the entire mechanism on the Toplevel side: `_iconbitmap_method_called`
+  flag, scheduled `self.after(200, self._windows_set_titlebar_icon)` call,
+  `wm_iconbitmap` / `iconbitmap` flag-setting wrappers, and the
+  `_windows_set_titlebar_icon` method itself. The fork no longer paints
+  `CustomTkinter_icon_Windows.ico` onto dialog windows. The equivalent
+  mechanism on `CTk` (root) is unchanged.
+
+### Fixed
+
+- **[Fixed]** Dialog windows now inherit the host application's icon set
+  via root `iconbitmap(default=...)` instead of being overridden by the
+  CTk-bundled placeholder. Tk's native default-icon inheritance was
+  previously stomped 200 ms after each Toplevel construction; that
+  override is gone. Resolves the CTkMaker-side workaround
+  (`_patch_ctk_toplevel_icon` monkey patch in `main.py`) which is no
+  longer needed — helper_elimination plan item #6 now satisfied at the
+  fork level.
+
 ## [5.3.0] — 2026-05-13
 
 Track B complete — Federico's `configure()`/`cget()` audit triad
