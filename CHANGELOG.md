@@ -6,9 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
-## [Unreleased] — 5.3.0
+## [5.3.0] — 2026-05-13
 
-Track B in progress — Federico's `configure()`/`cget()` audit triad
+Track B complete — Federico's `configure()`/`cget()` audit triad
 (`db08925` + `8d62feb` + `8c85d9b`) and UX polish commits. Major
 version bump signals semantic UX changes (Button fires on release,
 Entry/Textbox focus loss, Combo/Option close on dropdown re-click).
