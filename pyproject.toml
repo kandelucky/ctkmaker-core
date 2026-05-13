@@ -32,11 +32,9 @@ dependencies = [
 ]
 
 [project.urls]
-# TODO: set when repo published
-# Homepage  = "https://github.com/kandelucky/ctkmaker-core"
-# Issues    = "https://github.com/kandelucky/ctkmaker-core/issues"
-# Changelog = "https://github.com/kandelucky/ctkmaker-core/blob/main/CHANGELOG.md"
-# (GitHub handle = kandelucky; copyright holder = Lasha Kandelaki)
+Homepage  = "https://github.com/kandelucky/ctkmaker-core"
+Issues    = "https://github.com/kandelucky/ctkmaker-core/issues"
+Changelog = "https://github.com/kandelucky/ctkmaker-core/blob/main/CHANGELOG.md"
 
 [project.entry-points."pyinstaller40"]
 hook-dirs = "customtkinter._pyinstaller:get_hook_dirs"
