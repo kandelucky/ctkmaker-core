@@ -1,4 +1,5 @@
 import tkinter
+import tkinter.font
 import sys
 from typing import Union, Tuple, Callable, Optional, Any
 
@@ -9,6 +10,10 @@ from .core_widget_classes import CTkBaseClass
 from .font import CTkFont
 from .image import CTkImage
 from .utility import derive_disabled_color
+
+
+# autofit (font_autofit=True): smallest font size the binary search will shrink to
+_AUTOFIT_MIN_SIZE = 6
 
 
 class CTkButton(CTkBaseClass):
@@ -44,6 +49,7 @@ class CTkButton(CTkBaseClass):
 
                  text: str = "CTkButton",
                  font: Optional[Union[tuple, CTkFont]] = None,
+                 font_autofit: bool = False,
                  textvariable: Union[tkinter.Variable, None] = None,
                  image: Union[CTkImage, "ImageTk.PhotoImage", None] = None,
                  image_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -92,6 +98,14 @@ class CTkButton(CTkBaseClass):
         self._font: Union[tuple, CTkFont] = CTkFont() if font is None else self._check_font_type(font)
         if isinstance(self._font, CTkFont):
             self._font.add_size_configure_callback(self._update_font)
+
+        # font autofit: shrink the text to fit the available width (never grows above the
+        # configured size). _autofit_font is a private tkinter.font.Font used for both
+        # measuring and rendering, so the (possibly shared) CTkFont is never mutated.
+        self._font_autofit: bool = font_autofit
+        self._autofit_font: Optional[tkinter.font.Font] = None
+        self._autofit_last_width: Optional[float] = None
+        self._autofit_after_id: Optional[str] = None
 
         # image
         self._image = self._check_image_type(image)
@@ -170,7 +184,10 @@ class CTkButton(CTkBaseClass):
         self._create_grid()
 
         if self._text_label is not None:
-            self._text_label.configure(font=self._apply_font_scaling(self._font))
+            if self._font_autofit:
+                self._apply_autofit_now()
+            else:
+                self._text_label.configure(font=self._apply_font_scaling(self._font))
 
         self._update_image()
 
@@ -192,12 +209,112 @@ class CTkButton(CTkBaseClass):
     def _update_font(self):
         """ pass font to tkinter widgets with applied font scaling and update grid with workaround """
         if self._text_label is not None:
-            self._text_label.configure(font=self._apply_font_scaling(self._font))
+            if self._font_autofit:
+                self._apply_autofit_now()
+            else:
+                self._text_label.configure(font=self._apply_font_scaling(self._font))
 
             # Workaround to force grid to be resized when text changes size.
             # Otherwise grid will lag and only resizes if other mouse action occurs.
             self._canvas.grid_forget()
             self._canvas.grid(row=0, column=0, rowspan=5, columnspan=5, sticky="nsew")
+
+    # ----- font autofit ---------------------------------------------------
+
+    def _font_configured_size(self) -> int:
+        """ the configured (ceiling) font size in px — autofit never grows past this """
+        if isinstance(self._font, CTkFont):
+            return abs(self._font.cget("size"))
+        return abs(self._font[1])
+
+    def _autofit_base_font_kwargs(self) -> dict:
+        """ family / style of the configured font, for the private measurement font """
+        if isinstance(self._font, CTkFont):
+            return {"family": self._font.cget("family"),
+                    "weight": self._font.cget("weight"),
+                    "slant": self._font.cget("slant"),
+                    "underline": self._font.cget("underline"),
+                    "overstrike": self._font.cget("overstrike")}
+        tokens = [str(t).lower() for t in self._font[2:]]
+        return {"family": self._font[0],
+                "weight": "bold" if "bold" in tokens else "normal",
+                "slant": "italic" if "italic" in tokens else "roman",
+                "underline": "underline" in tokens,
+                "overstrike": "overstrike" in tokens}
+
+    def _autofit_available_width(self) -> float:
+        """ width (scaled px) the text may occupy: button width minus the corner/border
+        padding columns, the image and the image-text spacing """
+        scaled_total = self._apply_widget_scaling(self._current_width)
+        scaled_pad = self._apply_widget_scaling(max(self._corner_radius, self._border_width + 1, self._border_spacing))
+        available = scaled_total - 2 * scaled_pad
+        if self._image_label is not None and self._compound in ("left", "right"):
+            available -= self._image_label.winfo_reqwidth()
+            if self._text_label is not None:
+                available -= self._apply_widget_scaling(self._image_label_spacing)
+        return max(available, 1.0)
+
+    def _refit_font(self, available_width: float):
+        """ binary-search the largest size <= configured size whose text fits available_width """
+        if self._text_label is None:
+            return
+        text = self._text_label.cget("text")
+        if not text:
+            return
+
+        ceiling = self._font_configured_size()
+        scaling = self._get_widget_scaling()
+        if self._autofit_font is None:
+            self._autofit_font = tkinter.font.Font()
+        self._autofit_font.configure(**self._autofit_base_font_kwargs())
+
+        def fits(size: int) -> bool:
+            self._autofit_font.configure(size=-abs(round(size * scaling)))
+            return self._autofit_font.measure(text) <= available_width
+
+        if fits(ceiling):
+            best = ceiling
+        else:
+            lo, hi = min(_AUTOFIT_MIN_SIZE, ceiling), ceiling
+            best = lo
+            while lo <= hi:
+                mid = (lo + hi) // 2
+                if fits(mid):
+                    best, lo = mid, mid + 1
+                else:
+                    hi = mid - 1
+
+        self._autofit_font.configure(size=-abs(round(best * scaling)))
+        self._text_label.configure(font=self._autofit_font)
+
+    def _apply_autofit_now(self):
+        """ refit synchronously (used when text / font / scaling changed) """
+        if self._text_label is None:
+            return
+        available = self._autofit_available_width()
+        self._autofit_last_width = available
+        self._refit_font(available)
+
+    def _schedule_refit(self, force: bool = False):
+        """ debounced refit — coalesces the burst of _draw calls during a resize """
+        if not self._font_autofit or self._text_label is None:
+            return
+        if force:
+            self._autofit_last_width = None
+        if self._autofit_after_id is not None:
+            return
+        self._autofit_after_id = self.after_idle(self._do_scheduled_refit)
+
+    def _do_scheduled_refit(self):
+        self._autofit_after_id = None
+        if not self._font_autofit or self._text_label is None:
+            return
+        available = self._autofit_available_width()
+        # infinite-loop guard: only refit when the available width really changed
+        if self._autofit_last_width is not None and abs(available - self._autofit_last_width) < 0.5:
+            return
+        self._autofit_last_width = available
+        self._refit_font(available)
 
     def _get_image_tint(self) -> Optional[Union[str, Tuple[str, str]]]:
         """ active image tint: image_color_disabled while the button is disabled (when set),
@@ -217,6 +334,8 @@ class CTkButton(CTkBaseClass):
                 self._image_label.configure(image=self._image)
 
     def destroy(self):
+        if self._autofit_after_id is not None:
+            self.after_cancel(self._autofit_after_id)
         if isinstance(self._font, CTkFont):
             self._font.remove_size_configure_callback(self._update_font)
         if isinstance(self._image, CTkImage):
@@ -335,6 +454,11 @@ class CTkButton(CTkBaseClass):
                 self._image_label.destroy()
                 self._image_label = None
                 self._create_grid()
+
+        # autofit: the text label may have just been (re)created or the available width
+        # may have changed — re-fit on idle (debounced, guarded against no-op resizes)
+        if self._font_autofit and self._text_label is not None:
+            self._schedule_refit()
 
     def _create_grid(self):
         """ configure grid system (5x5) """
@@ -462,12 +586,23 @@ class CTkButton(CTkBaseClass):
             self._background_corner_colors = kwargs.pop("background_corner_colors")
             require_redraw = True
 
+        if "font_autofit" in kwargs:
+            self._font_autofit = kwargs.pop("font_autofit")
+            if self._font_autofit:
+                self._schedule_refit(force=True)
+            elif self._text_label is not None:
+                # autofit off — restore the configured size (drop any autofit shrink)
+                self._text_label.configure(font=self._apply_font_scaling(self._font))
+                self._autofit_last_width = None
+
         if "text" in kwargs:
             self._text = kwargs.pop("text")
             if self._text_label is None:
                 require_redraw = True  # text_label will be created in .draw()
             else:
                 self._text_label.configure(text=self._text)
+                if self._font_autofit:
+                    self._schedule_refit(force=True)  # width unchanged, text did — force
 
         if "font" in kwargs:
             if isinstance(self._font, CTkFont):
@@ -564,6 +699,8 @@ class CTkButton(CTkBaseClass):
             return self._text
         elif attribute_name == "font":
             return self._font
+        elif attribute_name == "font_autofit":
+            return self._font_autofit
         elif attribute_name == "textvariable":
             return self._textvariable
         elif attribute_name == "image":
