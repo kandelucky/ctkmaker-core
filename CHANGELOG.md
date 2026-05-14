@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.1] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkButton` — `text_color_hover` / `text_color_pressed`
+  kwargs that swap the button's text colour on hover and on press. Both
+  default to `None` (stock behaviour preserved — text colour never
+  changes); tuple `(light, dark)` colours supported like `hover_color`.
+  Full kwarg lifecycle (`__init__` / `configure()` / `cget()`);
+  `configure(...=None)` opts back out. A new `_update_text_color()` is
+  the single source of truth for the text-label fg (priority:
+  disabled > pressed > hover > base), and `_draw()` routes through it so
+  a redraw mid-hover/press no longer resets the in-flight colour. The
+  pressed colour is gated on the pointer being over the button, so
+  dragging off a held button drops it — matching the cancelled click.
+  Replaces the CTkMaker editor-side hover crutch and the exporter
+  `_auto_hover_text` helper.
+
 ## [5.4.0] — 2026-05-14
 
 ### Added
