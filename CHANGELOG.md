@@ -6,6 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.14] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkLabel` — `unified_bind` kwarg (default `False`) + public
+  `inner_canvas` / `inner_label` properties, backed by the new
+  `UnifiedBindMixin`. Upstream `CTkLabel.bind()` dual-binds the inner
+  canvas and the inner `tk.Label` unconditionally, so `<Enter>` / `<Leave>`
+  fire 2-3× per logical transition, `<Configure>` / `<Map>` / `<Unmap>`
+  report a sub-widget's geometry instead of the outer `tk.Frame`, and
+  `cursor=` lands only on the inner label (the rounded-corner area keeps
+  the default cursor). With `unified_bind=True`, `bind()` routes by event
+  class: hover through a state-tracked router with an `after_idle` leave
+  debounce and a `winfo_containing` re-check; `<Motion>` and click /
+  mousewheel dual-bound but deduped by `event.time`; geometry events to
+  the outer frame only; focus / key to the inner label (the focus
+  receiver); anything unclassified falls back to the upstream dual-bind.
+  Internal relay handlers register lazily on the first user `bind()`, so
+  a label that never calls `bind()` pays no runtime cost. `unbind()` is
+  now correct — `bind()` returns a funcid token and `unbind(seq, funcid)`
+  removes that one binding (upstream could only drop *all* callbacks for
+  a sequence). `unified_bind` is strictly additive — full kwarg lifecycle
+  (`__init__` / `configure()` / `cget()`), and `unified_bind=False` stays
+  byte-identical to the vanilla dual-bind, so the `CircleLabel` runtime-
+  override subclass keeps working. The routing dispatcher lives in
+  `UnifiedBindMixin` (host widgets implement a `_unified_bind_targets()`
+  hook) so `CTkButton` / `CTkSwitch` / `CTkSlider` can adopt it later.
+  CTkMaker currently does this editor-side with the `CircleLabel` `bind()`
+  crutch — this is the runtime-native equivalent.
+
+## [5.4.13] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTk` / `CTkToplevel` — dark titlebar now persists across
+  focus / map / restore events on Windows. CTk sets the DWM dark
+  attribute once at init, but Windows invalidates the non-client cache
+  on overlap / focus change / minimize-restore / maximize-restore and
+  the titlebar reverts to the system light style. New
+  `_windows_reapply_titlebar_color()` re-applies it on `<Map>` +
+  `<FocusIn>` — a lightweight re-set, no withdraw/deiconify cycle, so no
+  flicker. Appearance-mode-aware (follows the current light/dark mode,
+  does not force dark, does not fight a runtime appearance switch). A
+  one-shot `SetWindowPos(SWP_FRAMECHANGED)` per window kills the
+  light-flash on open. `<Map>` also covers un-iconify; `overrideredirect`
+  windows are skipped. Windows-only, no-op elsewhere, idempotent.
+
+### Fixed
+
+- **[Fixed]** `CTk` / `CTkToplevel` — DWM titlebar attribute was set on
+  the wrong HWND. Tk's `winfo_id()` is an inner caption-less `TkChild`;
+  the decorated frame DWM styles is its parent. Both the new persistence
+  handler and the existing `_windows_set_titlebar_color()` now resolve
+  the real frame via `_windows_titlebar_hwnd()` (`GetParent(winfo_id())`,
+  fallback `winfo_id()`). This is the long-standing reason CTk's dark
+  titlebar was unreliable on Windows.
+
 ## [5.4.12] — 2026-05-14
 
 ### Added
