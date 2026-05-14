@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.2] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkCheckBox` / `CTkRadioButton` / `CTkSwitch` —
+  `text_position` (`"right"` default / `"left"` / `"top"` / `"bottom"`)
+  and `text_spacing` (px gap between box and label, default `6`,
+  DPI-scaled) kwargs. The stock layout hard-coded the label to grid
+  column 2; a new `_create_grid()` is the single source of truth for the
+  box / spacer / label layout, called from `__init__`, `configure()`,
+  `_set_scaling()` and `_update_font()`. Full kwarg lifecycle
+  (`__init__` / `configure()` / `cget()`); `configure(text_position=...)`
+  live re-grids. `text_position="right"` + default `text_spacing`
+  reproduces the stock 1x3 grid byte-for-byte; `text=""` collapses the
+  label cell (no label, no spacer); an invalid `text_position` raises
+  `ValueError`. Replaces the CTkMaker editor-side `apply_state()`
+  re-grid crutch.
+
 ## [5.4.1] — 2026-05-14
 
 ### Added
