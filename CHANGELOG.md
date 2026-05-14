@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.12] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkButton` / `CTkLabel` — `full_circle` kwarg (default
+  `False`). `_create_grid()` reserves `corner_radius` worth of space on
+  the outer columns so the rounded-corner area never collides with the
+  text / image label; for pill or full-circle widgets
+  (`2*corner_radius >= width`) that reservation consumes the whole width,
+  the inner label's natural width then pushes the outer `tk.Frame` to
+  grow, and `place`-layout neighbours silently overlap. `full_circle=True`
+  drops the corner-radius reservation in `_create_grid()` only — the
+  fix is per-widget-correct: `CTkButton` removes `_corner_radius` from
+  the outer-column `minsize` formula (`max(border_width+1,
+  border_spacing)`), `CTkLabel` zeroes the inner label's horizontal
+  `padx` (the two widgets reserve corner space with different formulas,
+  so a single value would be wrong for one of them). The canvas draw
+  path still reads the real `_corner_radius`, so the visible rounded
+  shape is unchanged. Full kwarg lifecycle (`__init__` / `configure()` /
+  `cget()`); `configure(full_circle=...)` re-grids live. `full_circle`
+  is strictly additive — `_create_grid()`'s signature is untouched and
+  `full_circle=False` stays byte-identical to vanilla, so the existing
+  `CircleButton` / `CircleLabel` runtime-override subclasses keep
+  working. CTkMaker currently does this editor-side with the
+  `CircleButton` / `CircleLabel` `_create_grid()` crutches — this is the
+  runtime-native equivalent.
+
 ## [5.4.11] — 2026-05-14
 
 ### Fixed
