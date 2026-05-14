@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.5] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkButton` / `CTkLabel` — `image_color` and
+  `image_color_disabled` kwargs. `image_color` tints the widget's image;
+  `image_color_disabled` overrides it while the widget is disabled and
+  reverts on the way back to normal. Both default to `None` (no theme
+  fallback — an unconfigured widget shows the image as authored); hex /
+  named colours and `(light, dark)` tuples supported.
+  `CTkImage.create_scaled_photo_image()` gains a `tint_override` argument
+  so a widget can request a one-off tint without mutating a — possibly
+  shared — `CTkImage`; the photo-image cache keys on the resolved tint so
+  each (widget, state) pairing still renders once. A new
+  `_get_image_tint()` picks `image_color` vs `image_color_disabled` from
+  the current state; `configure(state=...)` re-runs it for a live tint
+  swap. Full kwarg lifecycle (`__init__` / `configure()` / `cget()`).
+  `image=None` with `image_color` set is a no-op; `image_color` is
+  independent of the Batch A `text_color_hover` / `text_color_pressed`
+  path. Step 2 of the image-tint batch (Step 1 — `CTkImage.tint_color` —
+  shipped in 5.4.4) — replaces the CTkMaker editor-side PIL recolour in
+  `_build_image()` and the exporter `_tint_image()` helper.
+
 ## [5.4.4] — 2026-05-14
 
 ### Added
