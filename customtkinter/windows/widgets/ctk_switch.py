@@ -176,6 +176,7 @@ class CTkSwitch(CTkBaseClass):
             if has_text:
                 self.grid_columnconfigure(1, weight=0, minsize=spacing)
                 self._text_label.grid(row=0, column=label_col, sticky=label_sticky)
+                self._text_label["anchor"] = label_sticky
         else:
             # box + label share column 0 across three rows; the label
             # row carries the stretch weight, the spacer sits between.
@@ -188,6 +189,7 @@ class CTkSwitch(CTkBaseClass):
             if has_text:
                 self.grid_rowconfigure(1, weight=0, minsize=spacing)
                 self._text_label.grid(row=label_row, column=0, sticky="")
+                self._text_label["anchor"] = "center"
 
     def _set_scaling(self, *args, **kwargs):
         super()._set_scaling(*args, **kwargs)
