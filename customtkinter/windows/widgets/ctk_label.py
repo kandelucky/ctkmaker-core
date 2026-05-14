@@ -92,12 +92,13 @@ class CTkLabel(CTkBaseClass):
         if isinstance(self._font, CTkFont):
             self._font.add_size_configure_callback(self._update_font)
 
-        # font autofit: shrink the text to fit the available width. Simple version —
-        # only active with a bounded width (width > 0) and no wrapping (wraplength == 0);
-        # a no-op otherwise. _autofit_font is private, so the shared CTkFont is never mutated.
+        # font autofit: shrink the text to fit the available space. Width mode (bounded
+        # width, no wrapping) fits the text width; height mode (wraplength set) wraps the
+        # text and fits the wrapped block's height; auto-grow with no wrapping is a no-op.
+        # _autofit_font is private, so the shared CTkFont is never mutated.
         self._font_autofit: bool = font_autofit
         self._autofit_font: Optional[tkinter.font.Font] = None
-        self._autofit_last_width: Optional[float] = None
+        self._autofit_last_constraint: Optional[tuple] = None
         self._autofit_after_id: Optional[str] = None
 
         # configure grid system (1x1)
@@ -189,17 +190,48 @@ class CTkLabel(CTkBaseClass):
                 "underline": "underline" in tokens,
                 "overstrike": "overstrike" in tokens}
 
-    def _autofit_available_width(self) -> Optional[float]:
-        """ width (scaled px) the text may occupy, or None when autofit does not apply.
-        Simple version: only a bounded width with no wrapping is supported. """
-        if self._desired_width <= 0 or self._wraplength != 0:
-            return None
-        scaled_total = self._apply_widget_scaling(self._current_width)
-        scaled_padx = self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2)))
-        return max(scaled_total - 2 * scaled_padx, 1.0)
+    def _autofit_constraint(self) -> tuple:
+        """ the active autofit constraint as (mode, available_px, wrap_px):
+          - "width"  — bounded width, no wrapping: fit the text width into available_px
+          - "height" — wraplength set: wrap at wrap_px, fit the wrapped block's height
+                       into available_px
+          - None     — autofit does not apply (auto-grow width, no wrapping)
+        px values are rounded ints so the change-guard can compare exactly. """
+        if self._wraplength != 0:
+            scaled_h = self._apply_widget_scaling(self._current_height)
+            scaled_border = self._apply_widget_scaling(self._border_width)
+            available = round(max(scaled_h - 2 * scaled_border, 1.0))
+            wrap_px = round(self._apply_widget_scaling(self._wraplength))
+            return "height", available, wrap_px
+        if self._desired_width > 0:
+            scaled_w = self._apply_widget_scaling(self._current_width)
+            scaled_padx = self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2)))
+            return "width", round(max(scaled_w - 2 * scaled_padx, 1.0)), None
+        return None, None, None
 
-    def _refit_font(self, available_width: float):
-        """ binary-search the largest size <= configured size whose text fits available_width """
+    @staticmethod
+    def _count_wrapped_lines(font: tkinter.font.Font, text: str, wrap_px: float) -> int:
+        """ approximate tkinter's word-wrap line count: greedy break on spaces, honour
+        explicit newlines, a word wider than wrap_px takes its own (overflowing) line """
+        total = 0
+        for paragraph in text.split("\n"):
+            if not paragraph:
+                total += 1  # a blank line still occupies a line
+                continue
+            line = ""
+            for word in paragraph.split(" "):
+                candidate = word if not line else line + " " + word
+                if not line or font.measure(candidate) <= wrap_px:
+                    line = candidate
+                else:
+                    total += 1
+                    line = word
+            total += 1  # the paragraph's final (or only) line
+        return max(total, 1)
+
+    def _refit_font(self, mode: str, available: float, wrap_px: Optional[float]):
+        """ binary-search the largest size <= configured size that satisfies the
+        constraint — text width (mode="width") or wrapped block height (mode="height") """
         text = self._label.cget("text")
         if not text:
             return
@@ -212,7 +244,10 @@ class CTkLabel(CTkBaseClass):
 
         def fits(size: int) -> bool:
             self._autofit_font.configure(size=-abs(round(size * scaling)))
-            return self._autofit_font.measure(text) <= available_width
+            if mode == "width":
+                return self._autofit_font.measure(text) <= available
+            lines = self._count_wrapped_lines(self._autofit_font, text, wrap_px)
+            return lines * self._autofit_font.metrics("linespace") <= available
 
         if fits(ceiling):
             best = ceiling
@@ -230,21 +265,22 @@ class CTkLabel(CTkBaseClass):
         self._label.configure(font=self._autofit_font)
 
     def _apply_autofit_now(self):
-        """ refit synchronously (used when text / font / scaling changed) """
-        available = self._autofit_available_width()
-        self._autofit_last_width = available
-        if available is None:
-            # autofit not applicable (auto-grow width or wrapping) — show the configured size
+        """ refit synchronously (used when text / font / wraplength / scaling changed) """
+        constraint = self._autofit_constraint()
+        self._autofit_last_constraint = constraint
+        mode, available, wrap_px = constraint
+        if mode is None:
+            # autofit not applicable (auto-grow width, no wrapping) — show configured size
             self._label.configure(font=self._apply_font_scaling(self._font))
         else:
-            self._refit_font(available)
+            self._refit_font(mode, available, wrap_px)
 
     def _schedule_refit(self, force: bool = False):
         """ debounced refit — coalesces the burst of _draw calls during a resize """
         if not self._font_autofit:
             return
         if force:
-            self._autofit_last_width = None
+            self._autofit_last_constraint = None
         if self._autofit_after_id is not None:
             return
         self._autofit_after_id = self.after_idle(self._do_scheduled_refit)
@@ -253,16 +289,17 @@ class CTkLabel(CTkBaseClass):
         self._autofit_after_id = None
         if not self._font_autofit:
             return
-        available = self._autofit_available_width()
-        if available is None:
+        constraint = self._autofit_constraint()
+        mode, available, wrap_px = constraint
+        if mode is None:
             self._label.configure(font=self._apply_font_scaling(self._font))
-            self._autofit_last_width = None
+            self._autofit_last_constraint = constraint
             return
-        # infinite-loop guard: only refit when the available width really changed
-        if self._autofit_last_width is not None and abs(available - self._autofit_last_width) < 0.5:
+        # infinite-loop guard: only refit when the constraint really changed
+        if constraint == self._autofit_last_constraint:
             return
-        self._autofit_last_width = available
-        self._refit_font(available)
+        self._autofit_last_constraint = constraint
+        self._refit_font(mode, available, wrap_px)
 
     def _get_image_tint(self) -> Optional[Union[str, Tuple[str, str]]]:
         """ active image tint: image_color_disabled while the label state is "disabled"
@@ -371,13 +408,13 @@ class CTkLabel(CTkBaseClass):
             else:
                 # autofit off — restore the configured size (drop any autofit shrink)
                 self._label.configure(font=self._apply_font_scaling(self._font))
-                self._autofit_last_width = None
+                self._autofit_last_constraint = None
 
         if "text" in kwargs:
             self._text = kwargs.pop("text")
             self._label.configure(text=self._text)
             if self._font_autofit:
-                self._schedule_refit(force=True)  # width unchanged, text did — force
+                self._schedule_refit(force=True)  # size unchanged, text did — force
 
         if "font" in kwargs:
             if isinstance(self._font, CTkFont):
