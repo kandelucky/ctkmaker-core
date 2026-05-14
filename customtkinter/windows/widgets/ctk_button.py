@@ -31,6 +31,7 @@ class CTkButton(CTkBaseClass):
                  corner_radius: Optional[int] = None,
                  border_width: Optional[int] = None,
                  border_spacing: int = 2,
+                 full_circle: bool = False,
 
                  bg_color: Union[str, Tuple[str, str]] = "transparent",
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -69,6 +70,13 @@ class CTkButton(CTkBaseClass):
         self._corner_radius = min(self._corner_radius, round(self._current_height / 2))
         self._border_width: int = ThemeManager.theme["CTkButton"]["border_width"] if border_width is None else border_width
         self._border_spacing: int = border_spacing
+        # full_circle: when True, _create_grid() stops reserving corner_radius worth of
+        # space on the outer columns — for pill / full-circle buttons (2*corner_radius >=
+        # width) that reservation would otherwise eat the whole width and push the outer
+        # Frame to grow. The canvas draw path still uses the real _corner_radius, so the
+        # visible rounded shape is unchanged. Strictly additive: default False is
+        # byte-identical to vanilla.
+        self._full_circle: bool = full_circle
 
         # color
         self._fg_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["fg_color"] if fg_color is None else self._check_color_type(fg_color, transparency=True)
@@ -479,7 +487,13 @@ class CTkButton(CTkBaseClass):
                 e_padding_weight, w_padding_weight = 0, 1000
 
         scaled_minsize_rows = self._apply_widget_scaling(max(self._border_width + 1, self._border_spacing))
-        scaled_minsize_columns = self._apply_widget_scaling(max(self._corner_radius, self._border_width + 1, self._border_spacing))
+        # full_circle: drop _corner_radius from the outer-column minsize so the
+        # rounded-corner area is no longer reserved as off-limits for content
+        # (border space is still reserved). Vanilla path (default) is unchanged.
+        if self._full_circle:
+            scaled_minsize_columns = self._apply_widget_scaling(max(self._border_width + 1, self._border_spacing))
+        else:
+            scaled_minsize_columns = self._apply_widget_scaling(max(self._corner_radius, self._border_width + 1, self._border_spacing))
 
         self.grid_rowconfigure(0, weight=n_padding_weight, minsize=scaled_minsize_rows)
         self.grid_rowconfigure(4, weight=s_padding_weight, minsize=scaled_minsize_rows)
@@ -539,6 +553,11 @@ class CTkButton(CTkBaseClass):
 
         if "border_spacing" in kwargs:
             self._border_spacing = kwargs.pop("border_spacing")
+            self._create_grid()
+            require_redraw = True
+
+        if "full_circle" in kwargs:
+            self._full_circle = kwargs.pop("full_circle")
             self._create_grid()
             require_redraw = True
 
@@ -673,6 +692,8 @@ class CTkButton(CTkBaseClass):
             return self._border_width
         elif attribute_name == "border_spacing":
             return self._border_spacing
+        elif attribute_name == "full_circle":
+            return self._full_circle
 
         elif attribute_name == "fg_color":
             return self._fg_color

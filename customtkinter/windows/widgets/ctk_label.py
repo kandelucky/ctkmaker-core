@@ -33,6 +33,7 @@ class CTkLabel(CTkBaseClass):
                  height: int = 28,
                  corner_radius: Optional[int] = None,
                  border_width: Optional[int] = None,
+                 full_circle: bool = False,
 
                  bg_color: Union[str, Tuple[str, str]] = "transparent",
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -71,6 +72,13 @@ class CTkLabel(CTkBaseClass):
         # shape
         self._corner_radius = ThemeManager.theme["CTkLabel"]["corner_radius"] if corner_radius is None else corner_radius
         self._border_width: int = ThemeManager.theme["CTkLabel"]["border_width"] if border_width is None else border_width
+        # full_circle: when True, _create_grid() zeroes the inner label's horizontal padx
+        # instead of reserving min(corner_radius, height/2) — for pill / full-circle labels
+        # (2*corner_radius >= width) that padx would otherwise eat the whole width and push
+        # the outer Frame to grow. The canvas draw path still uses the real _corner_radius,
+        # so the visible rounded shape is unchanged. Strictly additive: default False is
+        # byte-identical to vanilla.
+        self._full_circle: bool = full_circle
 
         # text
         self._anchor = anchor
@@ -359,8 +367,13 @@ class CTkLabel(CTkBaseClass):
         """ configure grid system (1x1) """
 
         text_label_grid_sticky = self._anchor if self._anchor != "center" else ""
-        self._label.grid(row=0, column=0, sticky=text_label_grid_sticky,
-                         padx=self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2))))
+        # full_circle: zero the inner label's horizontal padx so it can use the full
+        # inner width. Vanilla path (default) reserves min(corner_radius, height/2).
+        if self._full_circle:
+            grid_padx = 0
+        else:
+            grid_padx = self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2)))
+        self._label.grid(row=0, column=0, sticky=text_label_grid_sticky, padx=grid_padx)
 
     def _draw(self, no_color_updates=False):
         super()._draw(no_color_updates)
@@ -414,6 +427,11 @@ class CTkLabel(CTkBaseClass):
 
         if "border_width" in kwargs:
             self._border_width = kwargs.pop("border_width")
+            self._create_grid()
+            require_redraw = True
+
+        if "full_circle" in kwargs:
+            self._full_circle = kwargs.pop("full_circle")
             self._create_grid()
             require_redraw = True
 
@@ -513,6 +531,8 @@ class CTkLabel(CTkBaseClass):
             return self._corner_radius
         elif attribute_name == "border_width":
             return self._border_width
+        elif attribute_name == "full_circle":
+            return self._full_circle
 
         elif attribute_name == "fg_color":
             return self._fg_color
