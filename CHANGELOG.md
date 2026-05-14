@@ -68,16 +68,6 @@ release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
   `ctk_tk.py` reconfigures Tk's named fonts to Segoe UI on Windows so
   tk-native widgets, menus and tooltips render non-Latin text
   consistently. The Roboto faces are no longer bundled or loaded.
-- **[Changed]** DPI awareness now activates at *import time*
-  (`customtkinter/__init__.py`) instead of lazily on the first `CTk()`
-  window. A raw `tkinter` widget built before the first CTk window
-  previously saw an un-aware process (scaling factor 1.0). Opt out via
-  the `CTK_DEACTIVATE_DPI` environment variable set before importing
-  customtkinter — `deactivate_automatic_dpi_awareness()` called after
-  import is now too late. `ScalingTracker.activate_high_dpi_awareness()`
-  is idempotent (new `dpi_awareness_activated` guard), so the per-window
-  calls from `CTkScalingBaseClass` no longer risk a second
-  `SetProcessDpiAwareness` error.
 
 ## [5.3.2] — 2026-05-13
 
