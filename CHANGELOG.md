@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.4] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkImage` — `tint_color` and `preserve_aspect` kwargs.
+  `tint_color` recolours every non-transparent pixel to a solid colour
+  while keeping the source alpha (icon → silhouette); accepts a hex or
+  named colour, or a `(light, dark)` tuple resolved per appearance mode.
+  `preserve_aspect` (default `False` — legacy stretch) scales the image
+  by its smaller side and centres it on a transparent letterbox canvas.
+  `_fit_image()` / `_tint_image()` run after `_get_scaled_size()` so the
+  maths happens in DPI-scaled space; the photo-image cache key gains the
+  resolved tint colour so each colour renders once, and `configure()` of
+  either kwarg drops the caches. Full kwarg lifecycle (`__init__` /
+  `configure()` / `cget()`). Defaults (`tint_color=None`,
+  `preserve_aspect=False`) keep the render path byte-identical to vanilla.
+  Step 1 of the image-tint batch — replaces the CTkMaker editor-side PIL
+  recolour in `_build_image()`; the `CTkButton` / `CTkLabel` `image_color`
+  widget kwargs that build on it land in Step 2.
+
 ## [5.4.3] — 2026-05-14
 
 ### Changed
