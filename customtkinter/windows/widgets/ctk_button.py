@@ -32,6 +32,8 @@ class CTkButton(CTkBaseClass):
                  border_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
+                 text_color_hover: Optional[Union[str, Tuple[str, str]]] = None,
+                 text_color_pressed: Optional[Union[str, Tuple[str, str]]] = None,
 
                  background_corner_colors: Union[Tuple[Union[str, Tuple[str, str]]], None] = None,
                  round_width_to_even_numbers: bool = True,
@@ -63,6 +65,10 @@ class CTkButton(CTkBaseClass):
         self._border_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["border_color"] if border_color is None else self._check_color_type(border_color)
         self._text_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color"] if text_color is None else self._check_color_type(text_color)
         self._text_color_disabled: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color_disabled"] if text_color_disabled is None else self._check_color_type(text_color_disabled)
+        # text_color_hover / text_color_pressed default to None — no theme fallback, so an
+        # unconfigured button keeps the stock behaviour (text colour never swaps on hover/press)
+        self._text_color_hover: Optional[Union[str, Tuple[str, str]]] = None if text_color_hover is None else self._check_color_type(text_color_hover)
+        self._text_color_pressed: Optional[Union[str, Tuple[str, str]]] = None if text_color_pressed is None else self._check_color_type(text_color_pressed)
 
         # rendering options
         self._background_corner_colors: Union[Tuple[Union[str, Tuple[str, str]]], None] = background_corner_colors  # rendering options for DrawEngine
@@ -91,6 +97,7 @@ class CTkButton(CTkBaseClass):
         self._anchor: str = anchor
         self._click_animation_running: bool = False
         self._mouse_inside: bool = False
+        self._mouse_pressed: bool = False
 
         # canvas and draw engine
         self._canvas = CTkCanvas(master=self,
@@ -125,6 +132,14 @@ class CTkButton(CTkBaseClass):
                 self._text_label.bind("<Leave>", self._on_leave)
             if self._image_label is not None:
                 self._image_label.bind("<Leave>", self._on_leave)
+
+        if sequence is None or sequence == "<Button-1>":
+            self._canvas.bind("<Button-1>", self._on_press)
+
+            if self._text_label is not None:
+                self._text_label.bind("<Button-1>", self._on_press)
+            if self._image_label is not None:
+                self._image_label.bind("<Button-1>", self._on_press)
 
         if sequence is None or sequence == "<ButtonRelease-1>":
             self._canvas.bind("<ButtonRelease-1>", self._on_release)
@@ -237,17 +252,14 @@ class CTkButton(CTkBaseClass):
 
                 self._text_label.bind("<Enter>", self._on_enter)
                 self._text_label.bind("<Leave>", self._on_leave)
+                self._text_label.bind("<Button-1>", self._on_press)
                 self._text_label.bind("<ButtonRelease-1>", self._on_release)
                 self._text_label.bind("<ButtonRelease-1>", self._on_release)
 
             if no_color_updates is False:
-                # set text_label fg color (text color)
-                self._text_label.configure(fg=self._apply_appearance_mode(self._text_color))
-
-                if self._state == tkinter.DISABLED:
-                    self._text_label.configure(fg=(self._apply_appearance_mode(self._text_color_disabled)))
-                else:
-                    self._text_label.configure(fg=self._apply_appearance_mode(self._text_color))
+                # set text_label fg color (text / hover / pressed / disabled — single source of truth,
+                # so a redraw triggered mid-hover/press keeps the in-flight colour instead of resetting it)
+                self._update_text_color()
 
                 if self._apply_appearance_mode(self._fg_color) == "transparent":
                     self._text_label.configure(bg=self._apply_appearance_mode(self._bg_color))
@@ -271,6 +283,7 @@ class CTkButton(CTkBaseClass):
 
                 self._image_label.bind("<Enter>", self._on_enter)
                 self._image_label.bind("<Leave>", self._on_leave)
+                self._image_label.bind("<Button-1>", self._on_press)
                 self._image_label.bind("<ButtonRelease-1>", self._on_release)
                 self._image_label.bind("<ButtonRelease-1>", self._on_release)
 
@@ -390,6 +403,16 @@ class CTkButton(CTkBaseClass):
             self._text_color_disabled = self._check_color_type(kwargs.pop("text_color_disabled"))
             require_redraw = True
 
+        if "text_color_hover" in kwargs:
+            new_value = kwargs.pop("text_color_hover")
+            self._text_color_hover = None if new_value is None else self._check_color_type(new_value)
+            require_redraw = True
+
+        if "text_color_pressed" in kwargs:
+            new_value = kwargs.pop("text_color_pressed")
+            self._text_color_pressed = None if new_value is None else self._check_color_type(new_value)
+            require_redraw = True
+
         if "background_corner_colors" in kwargs:
             self._background_corner_colors = kwargs.pop("background_corner_colors")
             require_redraw = True
@@ -470,6 +493,10 @@ class CTkButton(CTkBaseClass):
             return self._text_color
         elif attribute_name == "text_color_disabled":
             return self._text_color_disabled
+        elif attribute_name == "text_color_hover":
+            return self._text_color_hover
+        elif attribute_name == "text_color_pressed":
+            return self._text_color_pressed
         elif attribute_name == "background_corner_colors":
             return self._background_corner_colors
 
@@ -509,8 +536,37 @@ class CTkButton(CTkBaseClass):
                 elif sys.platform.startswith("win") and self._command is not None:
                     self.configure(cursor="hand2")
 
+    def _update_text_color(self):
+        """ apply the correct colour to _text_label — single source of truth for the label fg.
+
+        Priority: disabled state wins, then an active press while the pointer is over the
+        button (text_color_pressed), then hover (text_color_hover), otherwise the resting
+        text_color. The press branch is gated on _mouse_inside so dragging off a held button
+        drops the pressed colour — mirroring the click being cancelled (no _command on an
+        off-widget release). text_color_hover / text_color_pressed are opt-in: when None the
+        corresponding branch is skipped, so stock CTkButton behaviour is preserved. """
+        if self._text_label is None:
+            return
+
+        if self._state == tkinter.DISABLED:
+            color = self._text_color_disabled
+        elif self._mouse_pressed and self._mouse_inside and self._text_color_pressed is not None:
+            color = self._text_color_pressed
+        elif self._mouse_inside and self._hover and self._text_color_hover is not None:
+            color = self._text_color_hover
+        else:
+            color = self._text_color
+
+        self._text_label.configure(fg=self._apply_appearance_mode(color))
+
     def _on_enter(self, event=None):
         self._mouse_inside = True
+        # self-heal: if the pointer re-enters without mouse button 1 held, a prior
+        # <ButtonRelease-1> must have been lost (e.g. a broken grab) — clear the stale
+        # press flag. event is None only for the internal _click_animation re-entry,
+        # where _on_release has already cleared the flag, so skipping the check is safe.
+        if event is not None and not (event.state & 0x0100):
+            self._mouse_pressed = False
         if self._hover is True and self._state == "normal":
             if self._hover_color is None:
                 inner_parts_color = self._fg_color
@@ -529,6 +585,10 @@ class CTkButton(CTkBaseClass):
             # set image_label bg color to button hover color
             if self._image_label is not None:
                 self._image_label.configure(bg=self._apply_appearance_mode(inner_parts_color))
+
+        # text colour follows hover/press state — runs regardless of self._hover / state so a
+        # disabled or hover-disabled button still settles on the right resting colour
+        self._update_text_color()
 
     def _on_leave(self, event=None):
         self._mouse_inside = False
@@ -552,19 +612,32 @@ class CTkButton(CTkBaseClass):
         if self._image_label is not None:
             self._image_label.configure(bg=self._apply_appearance_mode(inner_parts_color))
 
+        self._update_text_color()
+
     def _click_animation(self):
         if self._click_animation_running:
             self._on_enter()
 
+    def _on_press(self, event=None):
+        if self._state != tkinter.DISABLED:
+            self._mouse_pressed = True
+            self._update_text_color()
+
     def _on_release(self, event=None):
+        self._mouse_pressed = False
         if self._mouse_inside and self._state != tkinter.DISABLED:
             # click animation: change color with .on_leave() and back to normal after 100ms with click_animation()
+            # _on_leave() also refreshes the text colour; the deferred _on_enter() (via
+            # _click_animation) then restores text_color_hover while the cursor stays on the button
             self._on_leave()
             self._click_animation_running = True
             self.after(100, self._click_animation)
 
             if self._command is not None:
                 self._command()
+        else:
+            # released off the widget (or disabled) — no blink animation, just settle the text colour
+            self._update_text_color()
 
     def invoke(self):
         """ calls command function if button is not disabled """
