@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.10] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkLabel` — `font_wrap` kwarg (default `False`). Tk's
+  `wraplength=0` means "no wrap", which clashes with a user-facing wrap
+  switch; `font_wrap` bridges that. When `True` with no explicit
+  `wraplength` and a bounded width (`width > 0`), the inner `tk.Label`'s
+  `wraplength` is derived from the label's current inner width so the
+  text wraps to the widget, and it is re-derived in `_draw()` so the
+  text re-wraps live as the widget is resized — unlike a value computed
+  once at build time. An explicit `wraplength` still wins; an auto-grow
+  width (`width == 0`) makes `font_wrap` a deliberate no-op, since "wrap
+  to width" would be circular and could feed an endless `<Configure>`
+  loop. The effective wraplength is centralised in
+  `_effective_wraplength()` / `_is_wrapping()`, pushed to the inner
+  label by `_update_wraplength()` behind a change-guard.
+  `_autofit_constraint()` now keys off `_is_wrapping()` /
+  `_effective_wraplength()`, so `font_autofit` and `font_wrap` compose —
+  a `font_wrap` label correctly uses autofit's height mode. Full kwarg
+  lifecycle (`__init__` / `configure()` / `cget()`);
+  `configure(font_wrap=...)` re-derives live. `font_wrap=False` stays
+  byte-identical to vanilla. CTkMaker currently does this editor-side
+  with a `transform_properties()` wraplength heuristic — this is the
+  runtime-native equivalent, and reacts to resize where the editor's
+  static value cannot.
+
 ## [5.4.9] — 2026-05-14
 
 ### Added
