@@ -60,6 +60,7 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
         self._withdraw_called_after_windows_set_titlebar_color = False  # indicates if withdraw() was called after windows_set_titlebar_color
         self._iconify_called_after_windows_set_titlebar_color = False  # indicates if iconify() was called after windows_set_titlebar_color
         self._block_update_dimensions_event = False
+        self._titlebar_frame_changed_done = False  # SWP_FRAMECHANGED runs once per window (see _windows_reapply_titlebar_color)
 
         # save focus before calling withdraw
         self.focused_widget_before_widthdraw = None
@@ -70,6 +71,9 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
 
         self.bind('<Configure>', self._update_dimensions_event)
         self.bind('<FocusIn>', self._focus_in_event)
+        # Windows drops the dark titlebar on map / deiconify; re-apply it then.
+        # <Map> also covers un-iconify, so no separate deiconify hook is needed.
+        self.bind('<Map>', self._windows_reapply_titlebar_color, add="+")
         # Allows CTkEntry and CTkTextbox to lose focus when clicking elsewhere.
         # Guarded so click on a widget without focus_set (e.g. a native Menu)
         # does not raise AttributeError (per Federico's 8c85d9b follow-up).
@@ -90,6 +94,10 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
         # sometimes window looses jumps back on macOS if window is selected from Mission Control, so has to be lifted again
         if sys.platform == "darwin":
             self.lift()
+        # Windows invalidates the titlebar's non-client cache on focus changes;
+        # re-apply the dark/light attribute so it doesn't revert to system light.
+        elif sys.platform.startswith("win"):
+            self._windows_reapply_titlebar_color()
 
     def _update_dimensions_event(self, event=None):
         if not self._block_update_dimensions_event:
@@ -235,7 +243,9 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
                 return
 
             try:
-                hwnd = self.winfo_id()
+                # winfo_id() is an inner caption-less 'TkChild' window;
+                # DWM styles the parent frame. See _windows_titlebar_hwnd.
+                hwnd = self._windows_titlebar_hwnd()
                 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
                 DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19
 
@@ -279,6 +289,72 @@ class CTkToplevel(tkinter.Toplevel, CTkAppearanceModeBaseClass, CTkScalingBaseCl
             self._windows_set_titlebar_color_called = False
             self._withdraw_called_after_windows_set_titlebar_color = False
             self._iconify_called_after_windows_set_titlebar_color = False
+
+    def _windows_titlebar_hwnd(self) -> int:
+        """HWND that actually carries the window caption.
+
+        Tk's winfo_id() returns an inner 'TkChild' window with no
+        caption (WS_CAPTION unset); the decorated frame that DWM
+        styles is its parent. Falls back to winfo_id() if GetParent
+        yields nothing.
+        """
+        try:
+            child = self.winfo_id()
+            parent = ctypes.windll.user32.GetParent(child)
+            return parent if parent else child
+        except Exception:
+            return 0
+
+    def _windows_reapply_titlebar_color(self, event=None):
+        """Lightweight re-apply of the DWM dark/light titlebar attribute.
+
+        Windows invalidates the non-client cache on map / focus / restore
+        events, so the titlebar reverts to the system light style. This re-sets
+        the attribute without the withdraw/deiconify cycle that
+        _windows_set_titlebar_color uses, so there is no flicker. It is
+        appearance-mode-aware: it follows the current mode, it does not force
+        dark, and it does not fight a runtime appearance-mode switch.
+        No-op on non-Windows platforms.
+        """
+        if not sys.platform.startswith("win") or self._deactivate_windows_window_header_manipulation:
+            return
+        try:
+            if self.overrideredirect():  # chromeless popups have no titlebar
+                return
+        except Exception:
+            pass
+
+        hwnd = self._windows_titlebar_hwnd()
+        if not hwnd:
+            return
+
+        value = 1 if str(self._get_appearance_mode()).lower() == "dark" else 0
+
+        try:
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+            DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19
+
+            if ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE,
+                                                          ctypes.byref(ctypes.c_int(value)),
+                                                          ctypes.sizeof(ctypes.c_int(value))) != 0:
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1,
+                                                           ctypes.byref(ctypes.c_int(value)),
+                                                           ctypes.sizeof(ctypes.c_int(value)))
+
+            # Once per window lifetime: force a full non-client redraw so the
+            # very first paint picks up the attribute without a light flash.
+            # SetWindowPos with SWP_FRAMECHANGED is expensive, so it runs only
+            # once — later focus/map events repaint the NC area on their own.
+            if not self._titlebar_frame_changed_done:
+                self._titlebar_frame_changed_done = True
+                SWP_NOSIZE = 0x0001
+                SWP_NOMOVE = 0x0002
+                SWP_NOZORDER = 0x0004
+                SWP_FRAMECHANGED = 0x0020
+                ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0,
+                                                  SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED)
+        except Exception as err:
+            print(err)
 
     def _set_appearance_mode(self, mode_string):
         super()._set_appearance_mode(mode_string)
