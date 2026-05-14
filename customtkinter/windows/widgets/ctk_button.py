@@ -8,6 +8,7 @@ from .core_rendering import DrawEngine
 from .core_widget_classes import CTkBaseClass
 from .font import CTkFont
 from .image import CTkImage
+from .utility import derive_disabled_color
 
 
 class CTkButton(CTkBaseClass):
@@ -30,6 +31,8 @@ class CTkButton(CTkBaseClass):
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
                  hover_color: Optional[Union[str, Tuple[str, str]]] = None,
                  border_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 fg_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
+                 border_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color_hover: Optional[Union[str, Tuple[str, str]]] = None,
@@ -65,6 +68,11 @@ class CTkButton(CTkBaseClass):
         self._fg_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["fg_color"] if fg_color is None else self._check_color_type(fg_color, transparency=True)
         self._hover_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["hover_color"] if hover_color is None else self._check_color_type(hover_color)
         self._border_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["border_color"] if border_color is None else self._check_color_type(border_color)
+        # fg_color_disabled / border_color_disabled default to None — no theme fallback, so an
+        # unconfigured button auto-derives a dimmed colour from the enabled colour in _draw().
+        # text_color_disabled keeps its theme-backed default below (unchanged, backward compat).
+        self._fg_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if fg_color_disabled is None else self._check_color_type(fg_color_disabled, transparency=True)
+        self._border_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if border_color_disabled is None else self._check_color_type(border_color_disabled)
         self._text_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color"] if text_color is None else self._check_color_type(text_color)
         self._text_color_disabled: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color_disabled"] if text_color_disabled is None else self._check_color_type(text_color_disabled)
         # text_color_hover / text_color_pressed default to None — no theme fallback, so an
@@ -233,24 +241,35 @@ class CTkButton(CTkBaseClass):
                                                                               self._apply_widget_scaling(self._corner_radius),
                                                                               self._apply_widget_scaling(self._border_width))
 
+        # effective fg / border palette — while disabled, swap in the *_disabled colours
+        # (auto-derived as a dimmed blend of the enabled colours when the kwargs are left
+        # at None). Computed at function scope so the text/image label backgrounds below
+        # use the same colour as the inner_parts canvas fill.
+        if self._state == tkinter.DISABLED:
+            fg_color = derive_disabled_color(self, self._fg_color_disabled, self._fg_color, self._bg_color)
+            border_color = derive_disabled_color(self, self._border_color_disabled, self._border_color, self._bg_color)
+        else:
+            fg_color = self._fg_color
+            border_color = self._border_color
+
         if no_color_updates is False or requires_recoloring:
 
             self._canvas.configure(bg=self._apply_appearance_mode(self._bg_color))
 
             # set color for the button border parts (outline)
             self._canvas.itemconfig("border_parts",
-                                    outline=self._apply_appearance_mode(self._border_color),
-                                    fill=self._apply_appearance_mode(self._border_color))
+                                    outline=self._apply_appearance_mode(border_color),
+                                    fill=self._apply_appearance_mode(border_color))
 
             # set color for inner button parts
-            if self._fg_color == "transparent":
+            if fg_color == "transparent":
                 self._canvas.itemconfig("inner_parts",
                                         outline=self._apply_appearance_mode(self._bg_color),
                                         fill=self._apply_appearance_mode(self._bg_color))
             else:
                 self._canvas.itemconfig("inner_parts",
-                                        outline=self._apply_appearance_mode(self._fg_color),
-                                        fill=self._apply_appearance_mode(self._fg_color))
+                                        outline=self._apply_appearance_mode(fg_color),
+                                        fill=self._apply_appearance_mode(fg_color))
 
         # create text label if text given
         if self._text is not None and self._text != "":
@@ -277,10 +296,10 @@ class CTkButton(CTkBaseClass):
                 # so a redraw triggered mid-hover/press keeps the in-flight colour instead of resetting it)
                 self._update_text_color()
 
-                if self._apply_appearance_mode(self._fg_color) == "transparent":
+                if self._apply_appearance_mode(fg_color) == "transparent":
                     self._text_label.configure(bg=self._apply_appearance_mode(self._bg_color))
                 else:
-                    self._text_label.configure(bg=self._apply_appearance_mode(self._fg_color))
+                    self._text_label.configure(bg=self._apply_appearance_mode(fg_color))
 
         else:
             # delete text_label if no text given
@@ -305,10 +324,10 @@ class CTkButton(CTkBaseClass):
 
             if no_color_updates is False:
                 # set image_label bg color (background color of label)
-                if self._apply_appearance_mode(self._fg_color) == "transparent":
+                if self._apply_appearance_mode(fg_color) == "transparent":
                     self._image_label.configure(bg=self._apply_appearance_mode(self._bg_color))
                 else:
-                    self._image_label.configure(bg=self._apply_appearance_mode(self._fg_color))
+                    self._image_label.configure(bg=self._apply_appearance_mode(fg_color))
 
         else:
             # delete text_label if no text given
@@ -409,6 +428,16 @@ class CTkButton(CTkBaseClass):
 
         if "border_color" in kwargs:
             self._border_color = self._check_color_type(kwargs.pop("border_color"))
+            require_redraw = True
+
+        if "fg_color_disabled" in kwargs:
+            new_value = kwargs.pop("fg_color_disabled")
+            self._fg_color_disabled = None if new_value is None else self._check_color_type(new_value, transparency=True)
+            require_redraw = True
+
+        if "border_color_disabled" in kwargs:
+            new_value = kwargs.pop("border_color_disabled")
+            self._border_color_disabled = None if new_value is None else self._check_color_type(new_value)
             require_redraw = True
 
         if "text_color" in kwargs:
@@ -516,6 +545,10 @@ class CTkButton(CTkBaseClass):
             return self._hover_color
         elif attribute_name == "border_color":
             return self._border_color
+        elif attribute_name == "fg_color_disabled":
+            return self._fg_color_disabled
+        elif attribute_name == "border_color_disabled":
+            return self._border_color_disabled
         elif attribute_name == "text_color":
             return self._text_color
         elif attribute_name == "text_color_disabled":
@@ -625,10 +658,17 @@ class CTkButton(CTkBaseClass):
         self._mouse_inside = False
         self._click_animation_running = False
 
-        if self._fg_color == "transparent":
+        # resting fill — while disabled, settle on the dimmed disabled fg (auto-derived
+        # when fg_color_disabled is None) instead of the bright enabled fg_color
+        if self._state == tkinter.DISABLED:
+            fg_color = derive_disabled_color(self, self._fg_color_disabled, self._fg_color, self._bg_color)
+        else:
+            fg_color = self._fg_color
+
+        if fg_color == "transparent":
             inner_parts_color = self._bg_color
         else:
-            inner_parts_color = self._fg_color
+            inner_parts_color = fg_color
 
         # set color of inner button parts
         self._canvas.itemconfig("inner_parts",
