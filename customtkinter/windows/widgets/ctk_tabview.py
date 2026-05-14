@@ -44,6 +44,7 @@ class CTkTabview(CTkBaseClass):
 
                  command: Union[Callable, Any] = None,
                  anchor: str = "center",
+                 tab_stretch: bool = False,
                  state: str = "normal",
                  **kwargs):
 
@@ -69,6 +70,7 @@ class CTkTabview(CTkBaseClass):
         self._corner_radius = ThemeManager.theme["CTkFrame"]["corner_radius"] if corner_radius is None else corner_radius
         self._border_width = ThemeManager.theme["CTkFrame"]["border_width"] if border_width is None else border_width
         self._anchor = anchor
+        self._tab_stretch = tab_stretch
 
         self._canvas = CTkCanvas(master=self,
                                  bg=self._apply_appearance_mode(self._bg_color),
@@ -94,6 +96,7 @@ class CTkTabview(CTkBaseClass):
                                                     border_width=self._segmented_button_border_width,
                                                     command=self._segmented_button_callback,
                                                     font=self._segmented_button_font,
+                                                    dynamic_resizing=not self._tab_stretch,
                                                     state=state)
         self._configure_segmented_button_background_corners()
         self._configure_grid()
@@ -177,14 +180,19 @@ class CTkTabview(CTkBaseClass):
             self._canvas.grid(row=0, rowspan=2, column=0, columnspan=1, sticky="nsew")
 
     def _set_grid_segmented_button(self):
-        """ needs to be called for changes in corner_radius, anchor """
+        """ needs to be called for changes in corner_radius, anchor, tab_stretch """
 
-        if self._anchor.lower() in ("center", "n", "s"):
-            self._segmented_button.grid(row=1, rowspan=2, column=0, columnspan=1, padx=self._apply_widget_scaling(self._corner_radius), sticky="ns")
+        if self._tab_stretch:
+            sticky = "nsew"
+        elif self._anchor.lower() in ("center", "n", "s"):
+            sticky = "ns"
         elif self._anchor.lower() in ("nw", "w", "sw"):
-            self._segmented_button.grid(row=1, rowspan=2, column=0, columnspan=1, padx=self._apply_widget_scaling(self._corner_radius), sticky="nsw")
-        elif self._anchor.lower() in ("ne", "e", "se"):
-            self._segmented_button.grid(row=1, rowspan=2, column=0, columnspan=1, padx=self._apply_widget_scaling(self._corner_radius), sticky="nse")
+            sticky = "nsw"
+        else:  # "ne", "e", "se"
+            sticky = "nse"
+
+        self._segmented_button.grid(row=1, rowspan=2, column=0, columnspan=1,
+                                    padx=self._apply_widget_scaling(self._corner_radius), sticky=sticky)
 
     def _set_grid_current_tab(self):
         """ needs to be called for changes in corner_radius, border_width """
@@ -306,6 +314,11 @@ class CTkTabview(CTkBaseClass):
             self._configure_grid()
             self._set_grid_segmented_button()
 
+        if "tab_stretch" in kwargs:
+            self._tab_stretch = kwargs.pop("tab_stretch")
+            self._segmented_button.configure(dynamic_resizing=not self._tab_stretch)
+            self._set_grid_segmented_button()
+
         if "state" in kwargs:
             self._segmented_button.configure(state=kwargs.pop("state"))
 
@@ -344,6 +357,8 @@ class CTkTabview(CTkBaseClass):
             return self._command
         elif attribute_name == "anchor":
             return self._anchor
+        elif attribute_name == "tab_stretch":
+            return self._tab_stretch
         elif attribute_name == "state":
             return self._segmented_button.cget(attribute_name)
 
