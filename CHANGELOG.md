@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.6] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkEntry` / `CTkSlider` / `CTkButton` — visual disabled
+  palette. New `*_disabled` colour kwargs: `CTkEntry` gains `fg_color_disabled`,
+  `border_color_disabled`, `text_color_disabled`; `CTkSlider` gains
+  `fg_color_disabled` (track), `progress_color_disabled`,
+  `button_color_disabled`; `CTkButton` gains `fg_color_disabled` and
+  `border_color_disabled` (`text_color_disabled` already existed — unchanged).
+  Each defaults to `None`, and `None` means **auto-derive**: at draw time the
+  widget blends the matching enabled colour ~50% toward its `bg_color` via the
+  new `derive_disabled_color()` helper (`customtkinter/.../utility/`), so a
+  disabled widget is always visibly dimmed with zero config — including on
+  custom colours, where a theme key could not help. An explicit `*_disabled`
+  kwarg bypasses the derive and is used verbatim. Hex / named colours and
+  `(light, dark)` tuples are supported (resolved through
+  `_apply_appearance_mode`). Full kwarg lifecycle (`__init__` / `configure()` /
+  `cget()`); `configure(state=...)` live-swaps the palette (`CTkEntry.configure`
+  now triggers a redraw on state change). Replaces the hardcoded disabled-colour
+  constants in CTkMaker's `transform_properties()`.
+
+### Changed
+
+- **[Changed]** `CTkEntry` / `CTkSlider` / `CTkButton` — **default behaviour
+  change (visible).** A widget with `state="disabled"` is now rendered with a
+  dimmed palette instead of looking identical to its enabled state. Previously
+  `CTkEntry` reused the enabled `fg_color` / `text_color` for
+  `disabledbackground` / `disabledforeground`, `CTkSlider` changed only the
+  cursor, and `CTkButton` kept `fg_color` / `border_color` at full brightness
+  while disabled. This is an intentional improvement, not a regression — but
+  vanilla CustomTkinter consumers will see disabled widgets dim where they did
+  not before. Enabled-state rendering is byte-identical; pass an explicit
+  `*_disabled` colour to opt out of the auto-derived dimming. `CTkButton`'s
+  theme-backed `text_color_disabled` default is unchanged.
+
 ## [5.4.5] — 2026-05-14
 
 ### Added
