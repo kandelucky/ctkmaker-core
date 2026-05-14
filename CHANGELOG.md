@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.9] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkTabview` — `tab_stretch` kwarg (default `False`). When
+  `True`, the tab strip (the internal `CTkSegmentedButton`) is gridded
+  `sticky="nsew"` instead of the anchor-derived `ns` / `nsw` / `nse`, so
+  it fills the full width of the TabView; the segmented button is also
+  switched to `dynamic_resizing=False` so it holds that stretched width
+  instead of collapsing back to its content size, and its existing
+  equal-weight column grid then shares the width across the tabs.
+  `_set_grid_segmented_button()` is the single grid-writing site and is
+  now `tab_stretch`-aware — only the `sticky` value changes; row
+  placement is untouched, so a top/bottom anchor (`n` / `s`) still
+  positions the strip correctly alongside `tab_stretch`. Horizontal
+  anchor is overridden by the full-width strip, as expected. Full kwarg
+  lifecycle (`__init__` / `configure()` / `cget()`);
+  `configure(tab_stretch=...)` re-grids live. `tab_stretch=False` stays
+  byte-identical to vanilla. CTkMaker currently does this editor-side
+  with an `_apply_tab_stretch()` re-grid crutch — this is the
+  runtime-native equivalent.
+
 ## [5.4.8] — 2026-05-14
 
 ### Added
