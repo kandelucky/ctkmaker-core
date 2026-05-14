@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.11] — 2026-05-14
+
+### Fixed
+
+- **[Fixed]** `CTkTabview` — internal padding no longer double-scales on
+  HiDPI displays. `_set_grid_segmented_button()` and
+  `_set_grid_current_tab()` passed `padx` / `pady` already run through
+  `_apply_widget_scaling()` to `.grid()`, but `CTkBaseClass.grid()`
+  scales padding again via `_apply_argument_scaling()` — so the tab
+  strip's and active tab's `corner_radius`-based insets grew
+  quadratically with the scaling factor (a `corner_radius` of 6 was
+  gridded at 14 px instead of 9 px at 1.5x scaling). Both methods now
+  hand `.grid()` the raw values and let it scale once. Inherited from
+  upstream CustomTkinter; at 1.0x scaling the layout is unchanged.
+
 ## [5.4.10] — 2026-05-14
 
 ### Added
