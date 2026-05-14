@@ -49,6 +49,7 @@ class CTkLabel(CTkBaseClass):
                  compound: str = "center",
                  anchor: str = "center",  # label anchor: center, n, e, s, w
                  wraplength: int = 0,
+                 font_wrap: bool = False,
                  **kwargs):
 
         # transfer basic functionality (_bg_color, size, __appearance_mode, scaling) to CTkBaseClass
@@ -75,6 +76,8 @@ class CTkLabel(CTkBaseClass):
         self._anchor = anchor
         self._text = text
         self._wraplength = wraplength
+        self._font_wrap = font_wrap
+        self._last_applied_wraplength: Optional[int] = None
 
         # image
         self._image = self._check_image_type(image)
@@ -135,7 +138,7 @@ class CTkLabel(CTkBaseClass):
 
         self._canvas.configure(width=self._apply_widget_scaling(self._desired_width), height=self._apply_widget_scaling(self._desired_height))
         self._label.configure(font=self._apply_font_scaling(self._font))
-        self._label.configure(wraplength=self._apply_widget_scaling(self._wraplength))
+        self._update_wraplength()
         if self._font_autofit:
             self._apply_autofit_now()
 
@@ -167,6 +170,32 @@ class CTkLabel(CTkBaseClass):
         self._canvas.grid_forget()
         self._canvas.grid(row=0, column=0, sticky="nswe")
 
+    # ----- text wrapping --------------------------------------------------
+
+    def _is_wrapping(self) -> bool:
+        """ True when the label wraps text — an explicit wraplength, or font_wrap
+        deriving one from the label's own (bounded) width """
+        return self._wraplength != 0 or (self._font_wrap and self._desired_width > 0)
+
+    def _effective_wraplength(self) -> int:
+        """ scaled wraplength handed to the inner tk.Label. With font_wrap on, no
+        explicit wraplength and a bounded width, derive it from the label's current
+        inner width so the text wraps to the widget; otherwise the configured
+        wraplength (0 = no wrap), byte-identical to vanilla. """
+        if self._font_wrap and self._wraplength == 0 and self._desired_width > 0:
+            scaled_w = self._apply_widget_scaling(self._current_width)
+            scaled_padx = self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2)))
+            return round(max(scaled_w - 2 * scaled_padx, 1))
+        return round(self._apply_widget_scaling(self._wraplength))
+
+    def _update_wraplength(self):
+        """ push the effective wraplength to the inner label, skipping no-op writes
+        so a font_wrap reflow can't feed back into an endless <Configure> loop """
+        value = self._effective_wraplength()
+        if value != self._last_applied_wraplength:
+            self._last_applied_wraplength = value
+            self._label.configure(wraplength=value)
+
     # ----- font autofit ---------------------------------------------------
 
     def _font_configured_size(self) -> int:
@@ -193,16 +222,15 @@ class CTkLabel(CTkBaseClass):
     def _autofit_constraint(self) -> tuple:
         """ the active autofit constraint as (mode, available_px, wrap_px):
           - "width"  — bounded width, no wrapping: fit the text width into available_px
-          - "height" — wraplength set: wrap at wrap_px, fit the wrapped block's height
-                       into available_px
+          - "height" — wrapping (explicit wraplength or font_wrap): wrap at wrap_px,
+                       fit the wrapped block's height into available_px
           - None     — autofit does not apply (auto-grow width, no wrapping)
         px values are rounded ints so the change-guard can compare exactly. """
-        if self._wraplength != 0:
+        if self._is_wrapping():
             scaled_h = self._apply_widget_scaling(self._current_height)
             scaled_border = self._apply_widget_scaling(self._border_width)
             available = round(max(scaled_h - 2 * scaled_border, 1.0))
-            wrap_px = round(self._apply_widget_scaling(self._wraplength))
-            return "height", available, wrap_px
+            return "height", available, self._effective_wraplength()
         if self._desired_width > 0:
             scaled_w = self._apply_widget_scaling(self._current_width)
             scaled_padx = self._apply_widget_scaling(min(self._corner_radius, round(self._current_height / 2)))
@@ -369,6 +397,10 @@ class CTkLabel(CTkBaseClass):
                                       disabledforeground=self._apply_appearance_mode(self._text_color_disabled),
                                       bg=self._apply_appearance_mode(self._fg_color))
 
+        # font_wrap: the available width may have changed — re-derive the
+        # wraplength so the text re-wraps to the widget on resize
+        self._update_wraplength()
+
         # autofit: the available width may have changed — re-fit on idle
         # (debounced, guarded against no-op resizes)
         if self._font_autofit:
@@ -443,9 +475,16 @@ class CTkLabel(CTkBaseClass):
 
         if "wraplength" in kwargs:
             self._wraplength = kwargs.pop("wraplength")
-            self._label.configure(wraplength=self._apply_widget_scaling(self._wraplength))
+            self._update_wraplength()
             if self._font_autofit:
                 # wraplength toggles whether autofit applies at all — force a re-evaluation
+                self._schedule_refit(force=True)
+
+        if "font_wrap" in kwargs:
+            self._font_wrap = kwargs.pop("font_wrap")
+            self._update_wraplength()
+            if self._font_autofit:
+                # font_wrap toggles whether the label wraps — re-evaluate autofit mode
                 self._schedule_refit(force=True)
 
         if "image_color" in kwargs:
@@ -502,6 +541,8 @@ class CTkLabel(CTkBaseClass):
             return self._anchor
         elif attribute_name == "wraplength":
             return self._wraplength
+        elif attribute_name == "font_wrap":
+            return self._font_wrap
 
         elif attribute_name in self._valid_tk_label_attributes:
             return self._label.cget(attribute_name)  # cget of tkinter.Label
