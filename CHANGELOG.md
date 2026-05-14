@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.8] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkLabel` — `font_autofit` height mode for wrapped text.
+  5.4.7 handled only the width-bounded, non-wrapping case; with
+  `wraplength` set, `font_autofit` was a deliberate no-op. `CTkLabel`
+  autofit now selects one of two modes: **width mode** (`wraplength == 0`,
+  `width > 0`) fits the text width into the label's inner width
+  (unchanged from 5.4.7); **height mode** (`wraplength != 0`) wraps the
+  text at `wraplength` and fits the wrapped block's height into the
+  label's inner height; an auto-grow label with no wrapping stays a
+  no-op. Height mode counts wrapped lines with a greedy word-wrap
+  approximation of tkinter's own algorithm (breaks on spaces, honours
+  explicit newlines, an over-long word takes its own overflowing line),
+  then keeps the largest size whose `lines * linespace` fits the
+  available height — computed on the private measurement font, with no
+  `update_idletasks` / reflow. The internal change-guard now tracks the
+  full constraint tuple `(mode, available_px, wrap_px)` with px values
+  rounded to ints, so a width or height resize or a `wraplength` change
+  all re-fit while a no-op resize still short-circuits.
+  `font_autofit=False` stays byte-identical to vanilla, and a width-mode
+  label behaves exactly as in 5.4.7.
+
+## [5.4.7] — 2026-05-14
+
+### Added
+
+- **[Added]** `CTkButton` / `CTkLabel` — `font_autofit` kwarg (default
+  `False`). When `True`, the widget binary-searches the largest font
+  size `<=` the configured size that fits the available space; the
+  configured size is the ceiling — autofit only shrinks, never grows —
+  and it will not shrink below `_AUTOFIT_MIN_SIZE` (6 px), so extremely
+  long text settles at that floor and overflows rather than collapsing.
+  This release covers width-mode fitting: `CTkButton` fits the text
+  width into the button's inner width; `CTkLabel` does the same when it
+  has a bounded width (`width > 0`) and no wrapping (`wraplength == 0`),
+  and is a no-op otherwise (wrapping added in 5.4.8). Measurement runs
+  in scaled space on a private `tkinter.font.Font`, so it is DPI-correct
+  and the — possibly shared — `CTkFont` is never mutated; that same
+  private font is also what gets rendered. Re-fit triggers: text / font
+  / `font_autofit` change, widget resize, and scaling change; resize
+  re-fits are debounced through `after_idle` and guarded by the last
+  measured available width, so the `<Configure>` → refit → `<Configure>`
+  path cannot loop, and a pending refit is cancelled on `destroy()`.
+  Full kwarg lifecycle (`__init__` / `configure()` / `cget()`); switching
+  `font_autofit` back to `False` restores the configured size. CTkMaker
+  currently computes a fitted size editor-side in its descriptor
+  `compute_derived()` — this is the runtime-native equivalent.
+
 ## [5.4.6] — 2026-05-14
 
 ### Added
