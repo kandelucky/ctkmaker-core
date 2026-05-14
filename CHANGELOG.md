@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.3] — 2026-05-14
+
+### Changed
+
+- **[Changed]** `CTkCheckBox` / `CTkRadioButton` / `CTkSwitch` —
+  `_create_grid()` now sets the label's `anchor` to match
+  `text_position` (`"right"` → `w`, `"left"` → `e`, `"top"` /
+  `"bottom"` → `center`) instead of leaving it at the stock `w`. Keeps
+  the text visually aligned toward the box on every side; required so
+  the CTkMaker editor can drop its `_reposition_text` crutch with no
+  visual change.
+
 ## [5.4.2] — 2026-05-14
 
 ### Added
