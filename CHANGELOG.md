@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.0] — 2026-05-14
+
+### Added
+
+- **[Added]** Non-Latin keyboard input recovery on Windows
+  (`customtkinter/windows/widgets/utility/win_keyboard.py`). Tk 8.6
+  decodes `WM_CHAR` through the cp1252 ANSI codepage, so non-Latin
+  scripts (Georgian, Armenian, Devanagari, Thai, …) arrived as `?`. A
+  `<KeyPress>` hook queries Win32 `ToUnicodeEx` with the active layout
+  and inserts the real codepoint.
+- **[Added]** Cross-platform clipboard shortcut router + right-click
+  context menu (Cut / Copy / Paste / Select All) for `Entry` / `Text`.
+  Tk matches `<Control-c>` etc. by keysym, so non-Latin layouts
+  (`keysym='??'`) silently broke clipboard shortcuts; the router falls
+  back to the hardware keycode. Both installed via a monkey-patch on
+  `tkinter.Entry/Text.__init__`, covering raw tk and CTk-wrapped widgets.
+
+### Changed
+
+- **[Changed]** Default fonts swapped off the bundled Roboto (no Georgian
+  glyphs, no real Bold face — `CTkFont(weight="bold")` fell back to
+  synthetic bold). Theme JSONs (blue / dark-blue / green / gold) now
+  default to Segoe UI on Windows, SF Pro on macOS, Noto Sans on Linux;
+  `ctk_tk.py` reconfigures Tk's named fonts to Segoe UI on Windows so
+  tk-native widgets, menus and tooltips render non-Latin text
+  consistently. The Roboto faces are no longer bundled or loaded.
+- **[Changed]** DPI awareness now activates at *import time*
+  (`customtkinter/__init__.py`) instead of lazily on the first `CTk()`
+  window. A raw `tkinter` widget built before the first CTk window
+  previously saw an un-aware process (scaling factor 1.0). Opt out via
+  the `CTK_DEACTIVATE_DPI` environment variable set before importing
+  customtkinter — `deactivate_automatic_dpi_awareness()` called after
+  import is now too late. `ScalingTracker.activate_high_dpi_awareness()`
+  is idempotent (new `dpi_awareness_activated` guard), so the per-window
+  calls from `CTkScalingBaseClass` no longer risk a second
+  `SetProcessDpiAwareness` error.
+
 ## [5.3.2] — 2026-05-13
 
 ### Fixed
