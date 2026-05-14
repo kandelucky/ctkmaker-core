@@ -191,19 +191,22 @@ class CTkTabview(CTkBaseClass):
         else:  # "ne", "e", "se"
             sticky = "nse"
 
+        # padx is raw — CTkBaseClass.grid() applies widget scaling itself;
+        # pre-scaling here would double it (quadratic padding on HiDPI).
         self._segmented_button.grid(row=1, rowspan=2, column=0, columnspan=1,
-                                    padx=self._apply_widget_scaling(self._corner_radius), sticky=sticky)
+                                    padx=self._corner_radius, sticky=sticky)
 
     def _set_grid_current_tab(self):
         """ needs to be called for changes in corner_radius, border_width """
+        # padx / pady are raw — CTkBaseClass.grid() applies widget scaling
+        # itself; pre-scaling here would double it (quadratic on HiDPI).
+        tab_pad = max(self._corner_radius, self._border_width)
         if self._anchor.lower() in ("center", "w", "nw", "n", "ne", "e", "e"):
             self._tab_dict[self._current_name].grid(row=3, column=0, sticky="nsew",
-                                                    padx=self._apply_widget_scaling(max(self._corner_radius, self._border_width)),
-                                                    pady=self._apply_widget_scaling(max(self._corner_radius, self._border_width)))
+                                                    padx=tab_pad, pady=tab_pad)
         else:
             self._tab_dict[self._current_name].grid(row=0, column=0, sticky="nsew",
-                                                    padx=self._apply_widget_scaling(max(self._corner_radius, self._border_width)),
-                                                    pady=self._apply_widget_scaling(max(self._corner_radius, self._border_width)))
+                                                    padx=tab_pad, pady=tab_pad)
 
     def _grid_forget_all_tabs(self, exclude_name=None):
         for name, frame in self._tab_dict.items():
