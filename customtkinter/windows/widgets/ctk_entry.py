@@ -6,7 +6,7 @@ from .theme import ThemeManager
 from .core_rendering import DrawEngine
 from .core_widget_classes import CTkBaseClass
 from .font import CTkFont
-from .utility import pop_from_dict_by_set, check_kwargs_empty
+from .utility import pop_from_dict_by_set, check_kwargs_empty, attach_unicode_keyboard_recovery
 
 
 class CTkEntry(CTkBaseClass):
@@ -104,6 +104,8 @@ class CTkEntry(CTkBaseClass):
             self._entry.bind("<FocusIn>", self._entry_focus_in)
         if sequence is None or sequence == "<FocusOut>":
             self._entry.bind("<FocusOut>", self._entry_focus_out)
+        if sequence is None:
+            attach_unicode_keyboard_recovery(self._entry)
 
     def _create_grid(self):
         self._canvas.grid(column=0, row=0, sticky="nswe")

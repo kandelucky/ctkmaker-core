@@ -9,10 +9,7 @@ from ..core_rendering import DrawEngine
 
 FontManager.init_font_manager()
 
-# load Roboto fonts (used on Windows/Linux)
 customtkinter_directory = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-FontManager.load_font(os.path.join(customtkinter_directory, "assets", "fonts", "Roboto", "Roboto-Regular.ttf"))
-FontManager.load_font(os.path.join(customtkinter_directory, "assets", "fonts", "Roboto", "Roboto-Medium.ttf"))
 
 # load font necessary for rendering the widgets (used on Windows/Linux)
 if FontManager.load_font(os.path.join(customtkinter_directory, "assets", "fonts", "CustomTkinter_shapes_font.otf")) is False:

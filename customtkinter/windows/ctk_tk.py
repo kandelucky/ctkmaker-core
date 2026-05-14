@@ -15,6 +15,31 @@ from customtkinter.windows.widgets.utility.utility_functions import pop_from_dic
 CTK_PARENT_CLASS = tkinter.Tk
 
 
+# Reconfigure Tk's named fonts to Segoe UI on Windows. The OS default
+# (MS Shell Dlg 2 / Tahoma) clashes with CTk's modern look and lacks the
+# coverage Segoe UI Variable has built in (Latin, Cyrillic, Greek, Georgian,
+# Arabic, Hebrew, Thai, Devanagari natively + CJK via GDI font linking).
+# Covers tk-native widgets that fall through to TkDefaultFont — tk.Menu,
+# tooltip popups, native dropdowns, dialogs.
+_NAMED_FONTS_CONFIGURED = False
+
+def _configure_windows_named_fonts():
+    global _NAMED_FONTS_CONFIGURED
+    if _NAMED_FONTS_CONFIGURED:
+        return
+    _NAMED_FONTS_CONFIGURED = True
+    import tkinter.font as tkfont
+    for name in (
+        "TkDefaultFont", "TkTextFont", "TkFixedFont",
+        "TkMenuFont", "TkHeadingFont", "TkCaptionFont",
+        "TkSmallCaptionFont", "TkIconFont", "TkTooltipFont",
+    ):
+        try:
+            tkfont.nametofont(name).configure(family="Segoe UI")
+        except tkinter.TclError:
+            pass
+
+
 class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
     """
     Main app window with dark titlebar on Windows and macOS.
@@ -38,6 +63,11 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
 
         # call init methods of super classes
         CTK_PARENT_CLASS.__init__(self, **pop_from_dict_by_set(kwargs, self._valid_tk_constructor_arguments))
+
+        if sys.platform.startswith("win"):
+            _configure_windows_named_fonts()
+            self.option_add("*Font", "{Segoe UI} 11")
+
         CTkAppearanceModeBaseClass.__init__(self)
         CTkScalingBaseClass.__init__(self, scaling_type="window")
         check_kwargs_empty(kwargs, raise_error=True)

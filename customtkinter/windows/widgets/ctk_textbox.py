@@ -7,7 +7,7 @@ from .theme import ThemeManager
 from .core_rendering import DrawEngine
 from .core_widget_classes import CTkBaseClass
 from .font import CTkFont
-from .utility import pop_from_dict_by_set, check_kwargs_empty
+from .utility import pop_from_dict_by_set, check_kwargs_empty, attach_unicode_keyboard_recovery
 
 
 class CTkTextbox(CTkBaseClass):
@@ -89,6 +89,8 @@ class CTkTextbox(CTkBaseClass):
                                      **pop_from_dict_by_set(kwargs, self._valid_tk_text_attributes))
 
         check_kwargs_empty(kwargs, raise_error=True)
+
+        attach_unicode_keyboard_recovery(self._textbox)
 
         # scrollbars
         self._scrollbars_activated = activate_scrollbars
