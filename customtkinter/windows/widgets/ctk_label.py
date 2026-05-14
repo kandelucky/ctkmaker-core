@@ -1,11 +1,12 @@
 import tkinter
 import tkinter.font
-from typing import Union, Tuple, Callable, Optional, Any
+from typing import Union, Tuple, Optional, Any
 
 from .core_rendering import CTkCanvas
 from .theme import ThemeManager
 from .core_rendering import DrawEngine
 from .core_widget_classes import CTkBaseClass
+from .core_widget_classes import UnifiedBindMixin
 from .font import CTkFont
 from .image import CTkImage
 from .utility import pop_from_dict_by_set, check_kwargs_empty
@@ -15,12 +16,17 @@ from .utility import pop_from_dict_by_set, check_kwargs_empty
 _AUTOFIT_MIN_SIZE = 6
 
 
-class CTkLabel(CTkBaseClass):
+class CTkLabel(UnifiedBindMixin, CTkBaseClass):
     """
     Label with rounded corners. Default is fg_color=None (transparent fg_color).
     For detailed information check out the documentation.
 
     state argument will probably be removed because it has no effect
+
+    unified_bind (default False): when True, bind() routes events as if the
+    label were a single Tk widget — <Enter>/<Leave> fire once per logical
+    transition, geometry events report the outer Frame, cursor covers the
+    rounded corners. Default False is byte-identical to vanilla dual-bind.
     """
 
     # attributes that are passed to and managed by the tkinter entry only:
@@ -51,6 +57,7 @@ class CTkLabel(CTkBaseClass):
                  anchor: str = "center",  # label anchor: center, n, e, s, w
                  wraplength: int = 0,
                  font_wrap: bool = False,
+                 unified_bind: bool = False,
                  **kwargs):
 
         # transfer basic functionality (_bg_color, size, __appearance_mode, scaling) to CTkBaseClass
@@ -140,6 +147,19 @@ class CTkLabel(CTkBaseClass):
         self._create_grid()
         self._update_image()
         self._draw()
+
+        # unified bind routing — set up after the sub-widgets exist
+        self._init_unified_bind(unified_bind)
+
+    def _unified_bind_targets(self) -> dict:
+        """ UnifiedBindMixin host contract — see unified_bind_mixin.py """
+        return {
+            "canvas": self._canvas,
+            "inner_label": self._label,
+            "focus_target": self._label,
+            "all_targets": (self._canvas, self._label),
+            "outer": self,
+        }
 
     def _set_scaling(self, *args, **kwargs):
         super()._set_scaling(*args, **kwargs)
@@ -420,6 +440,9 @@ class CTkLabel(CTkBaseClass):
             self._schedule_refit()
 
     def configure(self, require_redraw=False, **kwargs):
+        if "unified_bind" in kwargs:
+            self._set_unified_bind(kwargs.pop("unified_bind"))
+
         if "corner_radius" in kwargs:
             self._corner_radius = kwargs.pop("corner_radius")
             self._create_grid()
@@ -518,11 +541,16 @@ class CTkLabel(CTkBaseClass):
         # "state" is a tkinter.Label attribute (see _valid_tk_label_attributes); refresh the
         # image tint after it's applied so a disabled state live-swaps to image_color_disabled
         state_changed = "state" in kwargs
+        cursor_changed = "cursor" in kwargs
 
         self._label.configure(**pop_from_dict_by_set(kwargs, self._valid_tk_label_attributes))  # configure tkinter.Label
 
         if state_changed:
             self._update_image()
+
+        # unified bind: keep the canvas's cursor in sync with the inner label
+        if cursor_changed and self._unified_bind:
+            self._mirror_cursor_to_canvas()
 
         super().configure(require_redraw=require_redraw, **kwargs)  # configure CTkBaseClass
 
@@ -563,26 +591,16 @@ class CTkLabel(CTkBaseClass):
             return self._wraplength
         elif attribute_name == "font_wrap":
             return self._font_wrap
+        elif attribute_name == "unified_bind":
+            return self._unified_bind
 
         elif attribute_name in self._valid_tk_label_attributes:
             return self._label.cget(attribute_name)  # cget of tkinter.Label
         else:
             return super().cget(attribute_name)  # cget of CTkBaseClass
 
-    def bind(self, sequence: str = None, command: Callable = None, add: str = True):
-        """ called on the tkinter.Label and tkinter.Canvas """
-        if not (add == "+" or add is True):
-            raise ValueError("'add' argument can only be '+' or True to preserve internal callbacks")
-        self._canvas.bind(sequence, command, add=True)
-        self._label.bind(sequence, command, add=True)
-
-    def unbind(self, sequence: str = None, funcid: Optional[str] = None):
-        """ called on the tkinter.Label and tkinter.Canvas """
-        if funcid is not None:
-            raise ValueError("'funcid' argument can only be None, because there is a bug in" +
-                             " tkinter and its not clear whether the internal callbacks will be unbinded or not")
-        self._canvas.unbind(sequence, None)
-        self._label.unbind(sequence, None)
+    # bind() / unbind() are provided by UnifiedBindMixin — routed when
+    # unified_bind=True, byte-identical dual-bind when False (the default).
 
     def focus(self):
         return self._label.focus()
