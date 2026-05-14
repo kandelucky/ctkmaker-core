@@ -38,6 +38,8 @@ class CTkLabel(CTkBaseClass):
                  text: str = "CTkLabel",
                  font: Optional[Union[tuple, CTkFont]] = None,
                  image: Union[CTkImage, None] = None,
+                 image_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  compound: str = "center",
                  anchor: str = "center",  # label anchor: center, n, e, s, w
                  wraplength: int = 0,
@@ -73,6 +75,11 @@ class CTkLabel(CTkBaseClass):
         self._compound = compound
         if isinstance(self._image, CTkImage):
             self._image.add_configure_callback(self._update_image)
+        # image_color / image_color_disabled default to None — no theme fallback, so an
+        # unconfigured label shows the image untinted (stock behaviour). image_color tints
+        # the image; image_color_disabled overrides it while the label state is "disabled".
+        self._image_color: Optional[Union[str, Tuple[str, str]]] = None if image_color is None else self._check_color_type(image_color)
+        self._image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if image_color_disabled is None else self._check_color_type(image_color_disabled)
 
         # font
         self._font = CTkFont() if font is None else self._check_font_type(font)
@@ -140,10 +147,20 @@ class CTkLabel(CTkBaseClass):
         self._canvas.grid_forget()
         self._canvas.grid(row=0, column=0, sticky="nswe")
 
+    def _get_image_tint(self) -> Optional[Union[str, Tuple[str, str]]]:
+        """ active image tint: image_color_disabled while the label state is "disabled"
+        (when set), otherwise image_color. Returns None when no tint is configured — the
+        image renders as authored. Only applies to CTkImage; a raw PhotoImage can't be
+        tinted. """
+        if self._image_color_disabled is not None and str(self._label.cget("state")) == tkinter.DISABLED:
+            return self._image_color_disabled
+        return self._image_color
+
     def _update_image(self):
         if isinstance(self._image, CTkImage):
             self._label.configure(image=self._image.create_scaled_photo_image(self._get_widget_scaling(),
-                                                                              self._get_appearance_mode()))
+                                                                              self._get_appearance_mode(),
+                                                                              tint_override=self._get_image_tint()))
         elif self._image is not None:
             self._label.configure(image=self._image)
 
@@ -256,7 +273,25 @@ class CTkLabel(CTkBaseClass):
             self._wraplength = kwargs.pop("wraplength")
             self._label.configure(wraplength=self._apply_widget_scaling(self._wraplength))
 
+        if "image_color" in kwargs:
+            new_value = kwargs.pop("image_color")
+            self._image_color = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()  # no-op when there is no image
+
+        if "image_color_disabled" in kwargs:
+            new_value = kwargs.pop("image_color_disabled")
+            self._image_color_disabled = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()
+
+        # "state" is a tkinter.Label attribute (see _valid_tk_label_attributes); refresh the
+        # image tint after it's applied so a disabled state live-swaps to image_color_disabled
+        state_changed = "state" in kwargs
+
         self._label.configure(**pop_from_dict_by_set(kwargs, self._valid_tk_label_attributes))  # configure tkinter.Label
+
+        if state_changed:
+            self._update_image()
+
         super().configure(require_redraw=require_redraw, **kwargs)  # configure CTkBaseClass
 
     def cget(self, attribute_name: str) -> any:
@@ -280,6 +315,10 @@ class CTkLabel(CTkBaseClass):
             return self._font
         elif attribute_name == "image":
             return self._image
+        elif attribute_name == "image_color":
+            return self._image_color
+        elif attribute_name == "image_color_disabled":
+            return self._image_color_disabled
         elif attribute_name == "compound":
             return self._compound
         elif attribute_name == "anchor":

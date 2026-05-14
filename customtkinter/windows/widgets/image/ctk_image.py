@@ -121,14 +121,14 @@ class CTkImage:
     def _get_scaled_size(self, widget_scaling: float) -> Tuple[int, int]:
         return round(self._size[0] * widget_scaling), round(self._size[1] * widget_scaling)
 
-    def _resolve_tint_color(self, appearance_mode: str) -> Optional[str]:
-        """ resolve tint_color to a single colour for the given appearance
-        mode, or None when no tint is set """
-        if self._tint_color is None:
+    def _resolve_tint_color(self, tint_color, appearance_mode: str) -> Optional[str]:
+        """ resolve a tint value (a single colour, a (light, dark) tuple, or
+        None) to a single colour for the given appearance mode """
+        if tint_color is None:
             return None
-        if isinstance(self._tint_color, (tuple, list)):
-            return self._tint_color[0] if appearance_mode == "light" else self._tint_color[1]
-        return self._tint_color
+        if isinstance(tint_color, (tuple, list)):
+            return tint_color[0] if appearance_mode == "light" else tint_color[1]
+        return tint_color
 
     def _fit_image(self, image: "Image.Image", scaled_size: Tuple[int, int]) -> "Image.Image":
         """ resize `image` into `scaled_size`. preserve_aspect=False stretches
@@ -188,9 +188,14 @@ class CTkImage:
                 self._dark_image, scaled_size, tint_color)
             return self._scaled_dark_photo_images[cache_key]
 
-    def create_scaled_photo_image(self, widget_scaling: float, appearance_mode: str) -> "ImageTk.PhotoImage":
+    def create_scaled_photo_image(self, widget_scaling: float, appearance_mode: str,
+                                  tint_override: Optional[Union[str, Tuple[str, str]]] = None) -> "ImageTk.PhotoImage":
+        # tint_override lets a widget (CTkButton / CTkLabel image_color) request a
+        # one-off tint without mutating this — possibly shared — CTkImage. None means
+        # "no override": fall back to the image's own tint_color.
         scaled_size = self._get_scaled_size(widget_scaling)
-        tint_color = self._resolve_tint_color(appearance_mode)
+        tint_source = self._tint_color if tint_override is None else tint_override
+        tint_color = self._resolve_tint_color(tint_source, appearance_mode)
 
         if appearance_mode == "light" and self._light_image is not None:
             return self._get_scaled_light_photo_image(scaled_size, tint_color)

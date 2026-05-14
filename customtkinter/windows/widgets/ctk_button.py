@@ -43,6 +43,8 @@ class CTkButton(CTkBaseClass):
                  font: Optional[Union[tuple, CTkFont]] = None,
                  textvariable: Union[tkinter.Variable, None] = None,
                  image: Union[CTkImage, "ImageTk.PhotoImage", None] = None,
+                 image_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  state: str = "normal",
                  hover: bool = True,
                  command: Union[Callable[[], Any], None] = None,
@@ -88,6 +90,11 @@ class CTkButton(CTkBaseClass):
         self._image_label: Union[tkinter.Label, None] = None
         if isinstance(self._image, CTkImage):
             self._image.add_configure_callback(self._update_image)
+        # image_color / image_color_disabled default to None — no theme fallback, so an
+        # unconfigured button shows the image untinted (stock behaviour). image_color
+        # tints the image; image_color_disabled overrides it while state="disabled".
+        self._image_color: Optional[Union[str, Tuple[str, str]]] = None if image_color is None else self._check_color_type(image_color)
+        self._image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if image_color_disabled is None else self._check_color_type(image_color_disabled)
 
         # other
         self._state: str = state
@@ -184,11 +191,20 @@ class CTkButton(CTkBaseClass):
             self._canvas.grid_forget()
             self._canvas.grid(row=0, column=0, rowspan=5, columnspan=5, sticky="nsew")
 
+    def _get_image_tint(self) -> Optional[Union[str, Tuple[str, str]]]:
+        """ active image tint: image_color_disabled while the button is disabled (when set),
+        otherwise image_color. Returns None when no tint is configured — the image renders
+        as authored. Only applies to CTkImage; a raw PhotoImage can't be tinted. """
+        if self._state == tkinter.DISABLED and self._image_color_disabled is not None:
+            return self._image_color_disabled
+        return self._image_color
+
     def _update_image(self):
         if self._image_label is not None:
             if isinstance(self._image, CTkImage):
                 self._image_label.configure(image=self._image.create_scaled_photo_image(self._get_widget_scaling(),
-                                                                                        self._get_appearance_mode()))
+                                                                                        self._get_appearance_mode(),
+                                                                                        tint_override=self._get_image_tint()))
             elif self._image is not None:
                 self._image_label.configure(image=self._image)
 
@@ -448,9 +464,20 @@ class CTkButton(CTkBaseClass):
             else:
                 require_redraw = True
 
+        if "image_color" in kwargs:
+            new_value = kwargs.pop("image_color")
+            self._image_color = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()  # no-op when there is no image label
+
+        if "image_color_disabled" in kwargs:
+            new_value = kwargs.pop("image_color_disabled")
+            self._image_color_disabled = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()
+
         if "state" in kwargs:
             self._state = kwargs.pop("state")
             self._set_cursor()
+            self._update_image()  # live-swap the image tint (image_color <-> image_color_disabled)
             require_redraw = True
 
         if "hover" in kwargs:
@@ -508,6 +535,10 @@ class CTkButton(CTkBaseClass):
             return self._textvariable
         elif attribute_name == "image":
             return self._image
+        elif attribute_name == "image_color":
+            return self._image_color
+        elif attribute_name == "image_color_disabled":
+            return self._image_color_disabled
         elif attribute_name == "state":
             return self._state
         elif attribute_name == "hover":
