@@ -5,6 +5,7 @@ from typing import Callable
 
 class ScalingTracker:
     deactivate_automatic_dpi_awareness = False
+    dpi_awareness_activated = False  # guards activate_high_dpi_awareness against repeat calls
 
     window_widgets_dict = {}  # contains window objects as keys with list of widget callbacks as elements
     window_dpi_scaling_dict = {}  # contains window objects as keys and corresponding scaling factors
@@ -110,8 +111,15 @@ class ScalingTracker:
 
     @classmethod
     def activate_high_dpi_awareness(cls):
-        """ make process DPI aware, customtkinter elements will get scaled automatically,
-            only gets activated when CTk object is created """
+        """ make process DPI aware, customtkinter elements will get scaled automatically.
+
+            ctkmaker-core activates this at import time (see customtkinter/__init__.py)
+            so a raw tkinter widget created before the first CTk window still sees a
+            DPI-aware process. Idempotent — repeat calls (e.g. from every CTk window's
+            __init__) are no-ops, since SetProcessDpiAwareness raises on a second call. """
+
+        if cls.dpi_awareness_activated:
+            return
 
         if not cls.deactivate_automatic_dpi_awareness:
             if sys.platform == "darwin":
@@ -146,6 +154,8 @@ class ScalingTracker:
                 ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Titlebar does not scale at runtime
             else:
                 pass  # DPI awareness on Linux not implemented
+
+        cls.dpi_awareness_activated = True
 
     @classmethod
     def get_window_dpi_scaling(cls, window) -> float:

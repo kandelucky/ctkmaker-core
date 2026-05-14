@@ -82,9 +82,25 @@ def set_window_scaling(scaling_value: float):
 
 
 def deactivate_automatic_dpi_awareness():
-    """ deactivate DPI awareness of current process (windll.shcore.SetProcessDpiAwareness(0)) """
+    """ deactivate DPI awareness of current process.
+
+    ctkmaker-core activates DPI awareness at import time (see the bottom of this
+    module), so calling this after the import is too late — the process is already
+    DPI-aware and Windows offers no clean way to undo it. To opt out, set the
+    CTK_DEACTIVATE_DPI environment variable before importing customtkinter. """
     ScalingTracker.deactivate_automatic_dpi_awareness = True
 
 
 def set_ctk_parent_class(ctk_parent_class):
     ctk_tk.CTK_PARENT_CLASS = ctk_parent_class
+
+
+# Activate DPI awareness at import time rather than lazily on the first CTk()
+# window. A raw tkinter widget built before the first CTk window would otherwise
+# see an un-aware process (scaling factor 1.0). Opt out by setting the
+# CTK_DEACTIVATE_DPI environment variable before importing customtkinter —
+# calling deactivate_automatic_dpi_awareness() afterwards is too late.
+if os.environ.get("CTK_DEACTIVATE_DPI"):
+    ScalingTracker.deactivate_automatic_dpi_awareness = True
+else:
+    ScalingTracker.activate_high_dpi_awareness()
