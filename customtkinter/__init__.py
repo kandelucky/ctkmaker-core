@@ -1,6 +1,6 @@
 __version__ = "5.2.2"
 __fork__ = "ctkmaker-core"
-__fork_version__ = "5.4.19"
+__fork_version__ = "5.4.20"
 
 import os
 import sys
@@ -67,6 +67,9 @@ from .bindings import (
     bind_var_to_label_image_tint,
     balance_pack,
 )
+
+# colour math helpers (Unity-style ColorBlock derivation — see CHANGELOG 5.4.20)
+from .windows.widgets.utility import tint_color, fade_color, derive_state_colors
 
 from .windows import ctk_tk
 

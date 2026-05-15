@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.20] — 2026-05-15
+
+### Added
+
+- **[Added]** Top-level `customtkinter.tint_color(base, tint, multiplier=1.0)`,
+  `customtkinter.fade_color(color, alpha, toward)`, and
+  `customtkinter.derive_state_colors(normal, hover_tint=..., pressed_tint=..., disabled_tint=..., multiplier=1.0, disabled_fade=False, surface=None, disabled_alpha=0.5)`.
+  Port Unity's UI.ColorBlock math to hex strings so descriptors can derive a
+  full per-state palette (normal / hover / pressed / disabled) from a single
+  base colour plus three tint multipliers, instead of asking the user to pick
+  each state colour manually. ``derive_state_colors`` is the convenience that
+  wraps everything; ``tint_color`` / ``fade_color`` are the primitives.
+  Hex-only (``#rgb`` or ``#rrggbb``) — Tk colour-name resolution stays on
+  the caller. Living in ``utility/utility_functions.py`` next to the
+  existing ``derive_disabled_color`` helper.
+
 ## [5.4.19] — 2026-05-15
 
 ### Added
