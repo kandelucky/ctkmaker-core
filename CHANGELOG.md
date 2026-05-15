@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.15] — 2026-05-15
+
+### Fixed
+
+- **[Fixed]** `CTkTabview` — `configure(anchor=...)` now re-grids the
+  canvas + active tab and refreshes the segmented button's background
+  corner colours, matching the `corner_radius` re-grid path. Previously
+  only the segmented button was re-placed, so a top→bottom anchor flip
+  left the page content stuck in the top-layout rows and the corner
+  gradient pointing the wrong way. Replaces CTkMaker's editor-side
+  `_set_grid_canvas` / `_set_grid_current_tab` workaround.
+
 ## [5.4.14] — 2026-05-14
 
 ### Added
