@@ -316,6 +316,9 @@ class CTkTabview(CTkBaseClass):
             self._anchor = kwargs.pop("anchor")
             self._configure_grid()
             self._set_grid_segmented_button()
+            self._set_grid_canvas()
+            self._set_grid_current_tab()
+            self._configure_segmented_button_background_corners()
 
         if "tab_stretch" in kwargs:
             self._tab_stretch = kwargs.pop("tab_stretch")
