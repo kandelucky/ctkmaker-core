@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.17] — 2026-05-15
+
+### Added
+
+- **[Added]** `bind_var_to_*` family + `balance_pack` — fifteen
+  live-binding helpers and one flex-pack runtime at top-level
+  `customtkinter`. Subscribe a `tk.*Var` to a write trace and mirror
+  the value into a widget's CTk configuration:
+  `bind_var_to_widget(var, widget, prop)` (generic property sync),
+  `bind_var_to_textbox(var, tb)` (CTkTextbox delete+insert),
+  `bind_var_to_font(var, widget, attr)` (CTkFont rebuild on
+  weight/slant/size/family/underline/overstrike change),
+  `bind_var_to_state(var, widget)` (bool → `state="normal/disabled"`),
+  `bind_var_to_label_enabled(var, widget, color_on, color_off)`
+  (CTkLabel text/tint swap), `bind_var_to_font_wrap(var, widget)`,
+  `bind_var_to_font_autofit(var, widget, size_off)` (binary-search
+  best-fit on width/height), `bind_var_to_place_coord(var, widget,
+  axis)`, the image binders (`bind_var_to_image_path` / `_size` /
+  `_preserve_aspect` / `_color` / `_color_disabled` /
+  `_label_image_tint`), and `balance_pack(container, axis)` for
+  vbox/hbox flex-shrink with DPI-correct scaling. Each helper does an
+  initial sync on attach. Migrated out of CTkMaker's exporter
+  (`auto_trace_templates.py` inlined the same bodies into every export
+  with `var.trace_add`/`widget.configure` plumbing); now exports
+  `import customtkinter as ctk` and call `ctk.bind_var_to_*` directly,
+  shrinking exports by ~200-300 lines for any project that uses
+  variable bindings.
+
+## [5.4.16] — 2026-05-15
+
+### Added
+
+- **[Added]** `register_project_fonts(root, fonts_dir)` — public helper
+  at top-level `customtkinter` that loads every `.ttf` / `.otf` / `.ttc`
+  in *fonts_dir* against *root* via `tkextrafont`, so subsequent
+  `CTkFont(family=...)` lookups resolve project-bundled families. Soft
+  dependency: if `tkextrafont` is not installed, the call is a no-op
+  and returns 0. Returns the count of successfully registered files.
+  Migrated out of CTkMaker's exporter (`runtime_helpers.py`
+  `_font_register_helper_lines()` inlined the same body verbatim into
+  every exported `.py` script); now exports `import` the helper and
+  call it as a one-liner, shrinking generated files and giving every
+  consumer a single source of truth for the loader logic.
+
 ## [5.4.15] — 2026-05-15
 
 ### Fixed

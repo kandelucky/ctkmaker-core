@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctkmaker-core"
-version = "5.4.1"
+version = "5.4.17"
 description = "A maintained fork of CustomTkinter with composite kwarg sugar and curated bug fixes. Drop-in (`import customtkinter`) for the ekosystema (CTkMessagebox, CTkColorPicker, etc.)."
 readme = "README.md"
 license = { file = "LICENSE" }

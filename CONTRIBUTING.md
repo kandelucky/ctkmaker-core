@@ -2,6 +2,18 @@
 
 Conventions for maintaining the fork. See also [ROADMAP.md](ROADMAP.md) for current status + Sacred contracts + architecture quick-map, and [CHANGELOG.md](CHANGELOG.md) for per-release detail.
 
+## Design philosophy — export cleanliness
+
+The fork's primary purpose is keeping CTkMaker's exported `.py` scripts clean. **Anything an exported script needs at runtime lives here** — runtime widget classes, runtime helpers, monkey-patches, font registration. Exports `import customtkinter` and reach those APIs natively, instead of CTkMaker inlining them via `inspect.getsource` or string-literal emission in `app/io/code_exporter/runtime_helpers.py`.
+
+When adding a new runtime entity (widget, helper, behavior wiring) for CTkMaker:
+
+1. Does exported code use it at runtime? → **fork**, at `customtkinter/windows/widgets/ctk_<name>.py` or `customtkinter/contrib/`
+2. Editor-only (selection state, canvas drag, undo, statusbar tooltip)? → **stays in CTkMaker `app/`**
+3. Export-time property rename (`border_enabled` → `border_width=0`)? → **stays in CTkMaker exporter**
+
+This rule supersedes the older "skip clean public-API features" framing — clean public-API features that exported code uses still belong here, because the alternative is inline bloat in every exported file.
+
 ## Tag naming
 
 Release tags use prefix `ctkmaker-core-v<version>` — e.g. `ctkmaker-core-v5.4.15`. Federico's upstream Custom2kinter remote (`custom2kinter`) is fetched into the same local repo and uses plain `v<version>` tags (e.g. `v5.3.0`), which would collide if we used semver alone.

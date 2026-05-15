@@ -1,6 +1,6 @@
 __version__ = "5.2.2"
 __fork__ = "ctkmaker-core"
-__fork_version__ = "5.4.15"
+__fork_version__ = "5.4.17"
 
 import os
 import sys
@@ -47,6 +47,26 @@ from .windows.widgets.font import CTkFont
 
 # import image classes
 from .windows.widgets.image import CTkImage
+
+# ctkmaker-core extensions used by CTkMaker exports
+from .font_loading import register_project_fonts
+from .bindings import (
+    bind_var_to_widget,
+    bind_var_to_textbox,
+    bind_var_to_font,
+    bind_var_to_state,
+    bind_var_to_label_enabled,
+    bind_var_to_font_wrap,
+    bind_var_to_font_autofit,
+    bind_var_to_place_coord,
+    bind_var_to_image_path,
+    bind_var_to_image_size,
+    bind_var_to_preserve_aspect,
+    bind_var_to_image_color,
+    bind_var_to_image_color_disabled,
+    bind_var_to_label_image_tint,
+    balance_pack,
+)
 
 from .windows import ctk_tk
 
