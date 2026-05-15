@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.5.1] — 2026-05-15
+
+### Added
+
+- **[Added]** `CTkTextbox(rich_text=False)` — opt-in flag + matching
+  `set_rich_text(text)` / `set_rich_text_enabled(bool)` /
+  `is_rich_text_enabled()` methods. When the flag is on,
+  `set_rich_text` parses Unity-style inline tags and inserts each
+  chunk with a per-style tk.Text tag (foreground / background /
+  font). Default off — existing `CTkTextbox` callers that insert
+  literal `<` characters keep working unchanged.
+
+### Changed
+
+- **[Refactor]** `CTkRichLabel` reduced to a thin subclass that
+  forces `rich_text=True` and adds read-only chrome
+  (`state="disabled"`, caret hidden, `cursor="arrow"`,
+  `takefocus=0`). All parser / tag-cache / font-resolution logic
+  moved into `CTkTextbox`. Public API unchanged (`set_text`
+  preserved as alias for `set_rich_text`).
+
 ## [5.5.0] — 2026-05-15
 
 ### Added

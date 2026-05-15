@@ -48,6 +48,7 @@ class CTkTextbox(CTkBaseClass):
 
                  font: Optional[Union[tuple, CTkFont]] = None,
                  activate_scrollbars: bool = True,
+                 rich_text: bool = False,
                  **kwargs):
 
         # transfer basic functionality (_bg_color, size, __appearance_mode, scaling) to CTkBaseClass
@@ -123,6 +124,15 @@ class CTkTextbox(CTkBaseClass):
 
         self._scrollbar_after_id = self.after(50, self._check_if_scrollbars_needed, None, True)
         self._draw()
+
+        # rich-text rendering state (opt-in via rich_text=True). See
+        # set_rich_text() — parses Unity-style inline tags into per-tag
+        # foreground/background/font on the inner tk.Text. Used as-is by
+        # CTkRichLabel (always-on) and by CTkMaker's optional CTkTextbox
+        # rich-text flag.
+        self._rich_text_enabled = bool(rich_text)
+        self._rich_text = ""
+        self._rich_tag_cache: dict = {}
 
     def _create_grid_for_text_and_scrollbars(self, re_grid_textbox=False, re_grid_x_scrollbar=False, re_grid_y_scrollbar=False):
 
@@ -366,6 +376,159 @@ class CTkTextbox(CTkBaseClass):
 
     def get(self, index1, index2=None):
         return self._textbox.get(index1, index2)
+
+    # ---- rich-text rendering (opt-in via rich_text=True) ----------
+
+    def set_rich_text(self, text: str) -> None:
+        """Replace the textbox content with text parsed as Unity-style
+        rich text. Each chunk is inserted with a per-style tk.Text tag
+        carrying the resolved foreground / background / font.
+
+        Always parses, regardless of ``rich_text_enabled`` — call this
+        when you specifically want rich-text rendering. To branch on the
+        flag use ``is_rich_text_enabled()``.
+        """
+        import tkinter.font as tkfont
+        from .utility.rich_text_parser import Style, parse
+
+        self._rich_text = text
+        inner = self._textbox
+
+        # Drop the cache so font / colour changes via configure() take
+        # effect on the next render — cached tags would pin the old
+        # values otherwise.
+        for old_tag in self._rich_tag_cache.values():
+            try:
+                inner.tag_delete(old_tag)
+            except tkinter.TclError:
+                pass
+        self._rich_tag_cache.clear()
+
+        prev_state = str(inner.cget("state"))
+        if prev_state == "disabled":
+            inner.configure(state="normal")
+        try:
+            inner.delete("1.0", "end")
+            chunks = parse(text, Style(size=self._rich_base_size()))
+            for ch in chunks:
+                tag = self._rich_tag_for(ch.style)
+                inner.insert("end", ch.text, tag)
+        finally:
+            if prev_state == "disabled":
+                inner.configure(state="disabled")
+
+    def set_rich_text_enabled(self, enabled: bool) -> None:
+        """Toggle the rich-text flag. Re-renders the stored content if
+        the flag changes (last call to ``set_rich_text`` / plain insert
+        determines what gets re-rendered)."""
+        new_value = bool(enabled)
+        if new_value == self._rich_text_enabled:
+            return
+        self._rich_text_enabled = new_value
+        if new_value and self._rich_text:
+            self.set_rich_text(self._rich_text)
+
+    def is_rich_text_enabled(self) -> bool:
+        return self._rich_text_enabled
+
+    def _rich_base_size(self):
+        f = self._font
+        if isinstance(f, (tuple, list)) and len(f) >= 2:
+            try:
+                return int(f[1])
+            except (ValueError, TypeError):
+                return None
+        if hasattr(f, "cget"):
+            try:
+                return int(f.cget("size"))
+            except tkinter.TclError:
+                return None
+        return None
+
+    def _rich_base_font_actual(self) -> dict:
+        """Family / size / weight / slant / underline / overstrike of the
+        inner Text's current effective font, in Tk units (size negative =
+        pixels, positive = points). Reads via ``cget("font")`` so it
+        tracks live configure(font=…) changes."""
+        defaults = {
+            "family": "TkDefaultFont", "size": 13,
+            "weight": "normal", "slant": "roman",
+            "underline": 0, "overstrike": 0,
+        }
+        try:
+            import tkinter.font as tkfont
+            spec = self._textbox.cget("font")
+            if isinstance(spec, str):
+                pf = tkfont.Font(font=spec)
+            elif hasattr(spec, "cget"):
+                pf = spec
+            else:
+                return defaults
+            return {
+                "family": str(pf.cget("family")),
+                "size": int(pf.cget("size")),
+                "weight": str(pf.cget("weight")),
+                "slant": str(pf.cget("slant")),
+                "underline": int(pf.cget("underline")),
+                "overstrike": int(pf.cget("overstrike")),
+            }
+        except Exception:
+            return defaults
+
+    def _rich_default_fg(self) -> str:
+        tc = getattr(self, "_text_color", None)
+        if tc is None:
+            return "#dce4ee"
+        try:
+            return str(self._apply_appearance_mode(tc))
+        except Exception:
+            if isinstance(tc, (tuple, list)) and tc:
+                return str(tc[-1])
+            return str(tc)
+
+    def _rich_widget_scaling(self) -> float:
+        try:
+            return float(self._get_widget_scaling())
+        except Exception:
+            return 1.0
+
+    def _rich_tag_for(self, style) -> str:
+        cached = self._rich_tag_cache.get(style)
+        if cached is not None:
+            return cached
+
+        import tkinter.font as tkfont
+
+        name = f"_rich_{len(self._rich_tag_cache)}"
+        self._rich_tag_cache[style] = name
+
+        cfg: dict = {
+            "foreground": style.color or self._rich_default_fg(),
+        }
+        if style.bg is not None:
+            cfg["background"] = style.bg
+
+        # Always rebuild the font so widget-level font_bold / italic /
+        # underline / overstrike / family / size propagate to chunks.
+        # ``<b>`` / ``<i>`` / ``<u>`` LAYER on top — never strip a
+        # widget-level setting.
+        base = self._rich_base_font_actual()
+        size = (
+            -max(1, int(round(style.size * self._rich_widget_scaling())))
+            if style.size is not None
+            else base["size"]
+        )
+        cfg["font"] = tkfont.Font(
+            family=base["family"],
+            size=size,
+            weight="bold" if style.bold or base["weight"] == "bold" else "normal",
+            slant="italic" if style.italic or base["slant"] == "italic" else "roman",
+            underline=1 if style.underline or base["underline"] else 0,
+            overstrike=base["overstrike"],
+        )
+
+        self._textbox.tag_configure(name, **cfg)
+        return name
 
     def bbox(self, index):
         return self._textbox.bbox(index)
