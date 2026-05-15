@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.18] — 2026-05-15
+
+### Added
+
+- **[Added]** `CTkButton(pressed_color=...)` — paints `inner_parts` plus the
+  text / image label backgrounds while mouse button 1 is held inside the
+  button, holding the colour for the full duration of the press. Default
+  `None` preserves the stock click-animation flash (leave→enter via
+  `fg_color` over 100 ms). Symmetric with the existing `*_pressed` text
+  kwarg; enables Unity-ColorBlock-style state-colour models that need an
+  explicit pressed background.
+
 ## [5.4.17] — 2026-05-15
 
 ### Added

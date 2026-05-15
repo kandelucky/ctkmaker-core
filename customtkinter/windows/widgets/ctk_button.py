@@ -36,6 +36,7 @@ class CTkButton(CTkBaseClass):
                  bg_color: Union[str, Tuple[str, str]] = "transparent",
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
                  hover_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 pressed_color: Optional[Union[str, Tuple[str, str]]] = None,
                  border_color: Optional[Union[str, Tuple[str, str]]] = None,
                  fg_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  border_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
@@ -81,6 +82,10 @@ class CTkButton(CTkBaseClass):
         # color
         self._fg_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["fg_color"] if fg_color is None else self._check_color_type(fg_color, transparency=True)
         self._hover_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["hover_color"] if hover_color is None else self._check_color_type(hover_color)
+        # pressed_color defaults to None — no theme fallback. When unset the button keeps
+        # the stock click-animation flash (leave→enter via fg_color); when set the canvas
+        # holds this colour for as long as mouse button 1 is down inside the button.
+        self._pressed_color: Optional[Union[str, Tuple[str, str]]] = None if pressed_color is None else self._check_color_type(pressed_color)
         self._border_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["border_color"] if border_color is None else self._check_color_type(border_color)
         # fg_color_disabled / border_color_disabled default to None — no theme fallback, so an
         # unconfigured button auto-derives a dimmed colour from the enabled colour in _draw().
@@ -569,6 +574,11 @@ class CTkButton(CTkBaseClass):
             self._hover_color = self._check_color_type(kwargs.pop("hover_color"))
             require_redraw = True
 
+        if "pressed_color" in kwargs:
+            new_value = kwargs.pop("pressed_color")
+            self._pressed_color = None if new_value is None else self._check_color_type(new_value)
+            # No redraw needed — pressed colour only renders during _on_press.
+
         if "border_color" in kwargs:
             self._border_color = self._check_color_type(kwargs.pop("border_color"))
             require_redraw = True
@@ -699,6 +709,8 @@ class CTkButton(CTkBaseClass):
             return self._fg_color
         elif attribute_name == "hover_color":
             return self._hover_color
+        elif attribute_name == "pressed_color":
+            return self._pressed_color
         elif attribute_name == "border_color":
             return self._border_color
         elif attribute_name == "fg_color_disabled":
@@ -851,6 +863,16 @@ class CTkButton(CTkBaseClass):
         if self._state != tkinter.DISABLED:
             self._mouse_pressed = True
             self._update_text_color()
+            # press visual — when pressed_color is set, hold this colour on the canvas
+            # for the duration of the press. _on_release's leave→enter flow paints the
+            # resting colour back when the user lifts the mouse button.
+            if self._pressed_color is not None:
+                pressed = self._apply_appearance_mode(self._pressed_color)
+                self._canvas.itemconfig("inner_parts", outline=pressed, fill=pressed)
+                if self._text_label is not None:
+                    self._text_label.configure(bg=pressed)
+                if self._image_label is not None:
+                    self._image_label.configure(bg=pressed)
 
     def _on_release(self, event=None):
         self._mouse_pressed = False

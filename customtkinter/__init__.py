@@ -1,6 +1,6 @@
 __version__ = "5.2.2"
 __fork__ = "ctkmaker-core"
-__fork_version__ = "5.4.17"
+__fork_version__ = "5.4.18"
 
 import os
 import sys
