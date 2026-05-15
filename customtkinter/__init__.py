@@ -1,6 +1,6 @@
 __version__ = "5.2.2"
 __fork__ = "ctkmaker-core"
-__fork_version__ = "5.4.20"
+__fork_version__ = "5.5.0"
 
 import os
 import sys
@@ -36,6 +36,7 @@ from .windows.widgets import CTkSwitch
 from .windows.widgets import CTkTabview
 from .windows.widgets import CTkTextbox
 from .windows.widgets import CTkScrollableFrame
+from .windows.widgets import CTkRichLabel
 
 # import windows
 from .windows import CTk

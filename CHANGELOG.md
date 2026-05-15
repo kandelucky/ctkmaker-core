@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.5.0] — 2026-05-15
+
+### Added
+
+- **[Added]** `CTkRichLabel` — read-only label widget rendering
+  Unity-style inline rich-text tags (`<b>`, `<i>`, `<u>`,
+  `<color=…>`, `<bg=…>`, `<size=N>`, `<size=+N|-N>`, `<noparse>`).
+  Built on `CTkTextbox` so it inherits CTk's rounded background +
+  border without re-implementing them; inner tk.Text forced
+  read-only, caret hidden, takefocus off. Per-tag foreground means
+  `state="disabled"` never shows the etched-ghost effect.
+- **[Added]** `customtkinter.windows.widgets.utility.rich_text_parser`
+  — stack-based two-pass parser. Lenient: unknown / malformed /
+  unclosed tags render literally; partial-overlap recovery; explicit
+  `<noparse>` block for valid-looking tags that should stay literal.
+  Used internally by `CTkRichLabel`; reusable for future opt-in
+  rich-text support on `CTkTextbox`.
+
 ## [5.4.20] — 2026-05-15
 
 ### Added
