@@ -38,6 +38,8 @@ class CTkButton(CTkBaseClass):
                  hover_color: Optional[Union[str, Tuple[str, str]]] = None,
                  pressed_color: Optional[Union[str, Tuple[str, str]]] = None,
                  border_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 border_color_hover: Optional[Union[str, Tuple[str, str]]] = None,
+                 border_color_pressed: Optional[Union[str, Tuple[str, str]]] = None,
                  fg_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  border_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -55,6 +57,8 @@ class CTkButton(CTkBaseClass):
                  textvariable: Union[tkinter.Variable, None] = None,
                  image: Union[CTkImage, "ImageTk.PhotoImage", None] = None,
                  image_color: Optional[Union[str, Tuple[str, str]]] = None,
+                 image_color_hover: Optional[Union[str, Tuple[str, str]]] = None,
+                 image_color_pressed: Optional[Union[str, Tuple[str, str]]] = None,
                  image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
                  state: str = "normal",
                  hover: bool = True,
@@ -92,6 +96,11 @@ class CTkButton(CTkBaseClass):
         # text_color_disabled keeps its theme-backed default below (unchanged, backward compat).
         self._fg_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if fg_color_disabled is None else self._check_color_type(fg_color_disabled, transparency=True)
         self._border_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if border_color_disabled is None else self._check_color_type(border_color_disabled)
+        # border_color_hover / border_color_pressed default to None — no theme fallback,
+        # so an unconfigured button keeps the stock behaviour (border colour never swaps
+        # on hover / press). _on_enter, _on_press, _on_leave repaint border_parts when set.
+        self._border_color_hover: Optional[Union[str, Tuple[str, str]]] = None if border_color_hover is None else self._check_color_type(border_color_hover)
+        self._border_color_pressed: Optional[Union[str, Tuple[str, str]]] = None if border_color_pressed is None else self._check_color_type(border_color_pressed)
         self._text_color: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color"] if text_color is None else self._check_color_type(text_color)
         self._text_color_disabled: Union[str, Tuple[str, str]] = ThemeManager.theme["CTkButton"]["text_color_disabled"] if text_color_disabled is None else self._check_color_type(text_color_disabled)
         # text_color_hover / text_color_pressed default to None — no theme fallback, so an
@@ -130,6 +139,11 @@ class CTkButton(CTkBaseClass):
         # tints the image; image_color_disabled overrides it while state="disabled".
         self._image_color: Optional[Union[str, Tuple[str, str]]] = None if image_color is None else self._check_color_type(image_color)
         self._image_color_disabled: Optional[Union[str, Tuple[str, str]]] = None if image_color_disabled is None else self._check_color_type(image_color_disabled)
+        # image_color_hover / image_color_pressed default to None — no theme fallback;
+        # _get_image_tint picks the right variant from state + mouse flags, _update_image
+        # is called from _on_enter / _on_leave / _on_press / _on_release to live-swap.
+        self._image_color_hover: Optional[Union[str, Tuple[str, str]]] = None if image_color_hover is None else self._check_color_type(image_color_hover)
+        self._image_color_pressed: Optional[Union[str, Tuple[str, str]]] = None if image_color_pressed is None else self._check_color_type(image_color_pressed)
 
         # other
         self._state: str = state
@@ -330,11 +344,17 @@ class CTkButton(CTkBaseClass):
         self._refit_font(available)
 
     def _get_image_tint(self) -> Optional[Union[str, Tuple[str, str]]]:
-        """ active image tint: image_color_disabled while the button is disabled (when set),
-        otherwise image_color. Returns None when no tint is configured — the image renders
-        as authored. Only applies to CTkImage; a raw PhotoImage can't be tinted. """
+        """ active image tint: precedence is disabled → pressed → hover → resting.
+        Each ``*_pressed`` / ``*_hover`` falls back to ``image_color`` when unset, and the
+        resting value falls back to ``None`` so an unconfigured button still renders the
+        image as authored. Only applies to ``CTkImage``; a raw ``PhotoImage`` can't be
+        tinted. """
         if self._state == tkinter.DISABLED and self._image_color_disabled is not None:
             return self._image_color_disabled
+        if self._mouse_pressed and self._mouse_inside and self._image_color_pressed is not None:
+            return self._image_color_pressed
+        if self._mouse_inside and self._hover and self._image_color_hover is not None:
+            return self._image_color_hover
         return self._image_color
 
     def _update_image(self):
@@ -593,6 +613,16 @@ class CTkButton(CTkBaseClass):
             self._border_color_disabled = None if new_value is None else self._check_color_type(new_value)
             require_redraw = True
 
+        if "border_color_hover" in kwargs:
+            new_value = kwargs.pop("border_color_hover")
+            self._border_color_hover = None if new_value is None else self._check_color_type(new_value)
+            # No redraw needed — only renders during _on_enter while hovered.
+
+        if "border_color_pressed" in kwargs:
+            new_value = kwargs.pop("border_color_pressed")
+            self._border_color_pressed = None if new_value is None else self._check_color_type(new_value)
+            # No redraw needed — only renders during _on_press.
+
         if "text_color" in kwargs:
             self._text_color = self._check_color_type(kwargs.pop("text_color"))
             require_redraw = True
@@ -667,6 +697,16 @@ class CTkButton(CTkBaseClass):
             self._image_color_disabled = None if new_value is None else self._check_color_type(new_value)
             self._update_image()
 
+        if "image_color_hover" in kwargs:
+            new_value = kwargs.pop("image_color_hover")
+            self._image_color_hover = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()
+
+        if "image_color_pressed" in kwargs:
+            new_value = kwargs.pop("image_color_pressed")
+            self._image_color_pressed = None if new_value is None else self._check_color_type(new_value)
+            self._update_image()
+
         if "state" in kwargs:
             self._state = kwargs.pop("state")
             self._set_cursor()
@@ -717,6 +757,10 @@ class CTkButton(CTkBaseClass):
             return self._fg_color_disabled
         elif attribute_name == "border_color_disabled":
             return self._border_color_disabled
+        elif attribute_name == "border_color_hover":
+            return self._border_color_hover
+        elif attribute_name == "border_color_pressed":
+            return self._border_color_pressed
         elif attribute_name == "text_color":
             return self._text_color
         elif attribute_name == "text_color_disabled":
@@ -742,6 +786,10 @@ class CTkButton(CTkBaseClass):
             return self._image_color
         elif attribute_name == "image_color_disabled":
             return self._image_color_disabled
+        elif attribute_name == "image_color_hover":
+            return self._image_color_hover
+        elif attribute_name == "image_color_pressed":
+            return self._image_color_pressed
         elif attribute_name == "state":
             return self._state
         elif attribute_name == "hover":
@@ -820,9 +868,17 @@ class CTkButton(CTkBaseClass):
             if self._image_label is not None:
                 self._image_label.configure(bg=self._apply_appearance_mode(inner_parts_color))
 
+            # border hover swap — repaint border_parts when border_color_hover is set
+            if self._border_color_hover is not None:
+                border_hover = self._apply_appearance_mode(self._border_color_hover)
+                self._canvas.itemconfig("border_parts", outline=border_hover, fill=border_hover)
+
         # text colour follows hover/press state — runs regardless of self._hover / state so a
         # disabled or hover-disabled button still settles on the right resting colour
         self._update_text_color()
+        # image tint follows hover/press/disabled state via _get_image_tint
+        if isinstance(self._image, CTkImage):
+            self._update_image()
 
     def _on_leave(self, event=None):
         self._mouse_inside = False
@@ -853,7 +909,20 @@ class CTkButton(CTkBaseClass):
         if self._image_label is not None:
             self._image_label.configure(bg=self._apply_appearance_mode(inner_parts_color))
 
+        # revert border to its resting colour. Only needed when border_color_hover or
+        # _pressed was set (i.e. _on_enter / _on_press might have painted a different
+        # shade); painting unconditionally is cheap and keeps the logic uniform.
+        if self._state == tkinter.DISABLED:
+            border_resting = derive_disabled_color(self, self._border_color_disabled, self._border_color, self._bg_color)
+        else:
+            border_resting = self._border_color
+        border_resolved = self._apply_appearance_mode(border_resting)
+        self._canvas.itemconfig("border_parts", outline=border_resolved, fill=border_resolved)
+
         self._update_text_color()
+        # image tint reverts via _get_image_tint (mouse_inside is now False)
+        if isinstance(self._image, CTkImage):
+            self._update_image()
 
     def _click_animation(self):
         if self._click_animation_running:
@@ -873,6 +942,13 @@ class CTkButton(CTkBaseClass):
                     self._text_label.configure(bg=pressed)
                 if self._image_label is not None:
                     self._image_label.configure(bg=pressed)
+            # border pressed swap — symmetric with pressed_color above
+            if self._border_color_pressed is not None:
+                border_pressed = self._apply_appearance_mode(self._border_color_pressed)
+                self._canvas.itemconfig("border_parts", outline=border_pressed, fill=border_pressed)
+            # image tint follows mouse_pressed via _get_image_tint
+            if isinstance(self._image, CTkImage):
+                self._update_image()
 
     def _on_release(self, event=None):
         self._mouse_pressed = False

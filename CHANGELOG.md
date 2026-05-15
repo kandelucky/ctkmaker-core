@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [PEP 440](https://peps.python.org/pep-0440/) 4-segment
 release versioning, tracking the upstream CustomTkinter baseline (`5.2.2`).
 
+## [5.4.19] — 2026-05-15
+
+### Added
+
+- **[Added]** `CTkButton(border_color_hover=..., border_color_pressed=...)` —
+  symmetric with the existing `border_color_disabled`; `_on_enter` and
+  `_on_press` repaint `border_parts` when set, `_on_leave` reverts to the
+  resting `border_color` (or auto-derived disabled). Default `None` =
+  border colour never swaps on hover / press (stock behaviour).
+- **[Added]** `CTkButton(image_color_hover=..., image_color_pressed=...)` —
+  symmetric with the existing `image_color_disabled`; `_get_image_tint`
+  now resolves disabled → pressed → hover → resting precedence, and
+  `_on_enter` / `_on_leave` / `_on_press` call `_update_image` so the
+  tint live-swaps with mouse state. Default `None` falls back to
+  `image_color` for unset variants.
+
+### Changed
+
+- `_on_enter` / `_on_leave` now also `_update_image()` so the image tint
+  follows mouse state even when only `image_color_hover` /
+  `image_color_pressed` differs from `image_color`. No-op when the
+  resolved tint equals the resting value.
+- `_on_leave` now repaints `border_parts` to the resting `border_color`
+  (or disabled-derived) unconditionally. Required so the new
+  `border_color_hover` / `_pressed` revert cleanly; visually identical
+  for buttons that don't set those.
+
 ## [5.4.18] — 2026-05-15
 
 ### Added
